@@ -116,6 +116,7 @@ Rust options:
   --enable-rust            build optional Rust components [no]
   --enable-rust-hlswriter  enable Rust HLS playlist writer [no]
   --enable-rust-hlsparser  enable Rust HLS playlist parser (hls protocol) [no]
+  --enable-rust-hlsdemux-parser enable Rust HLS demuxer playlist parser (subset) [no]
 
 Program options:
   --disable-programs       do not build command line programs
@@ -2741,6 +2742,7 @@ CMDLINE_SELECT="
     rust
     rust_hlswriter
     rust_hlsparser
+    rust_hlsdemux_parser
 "
 
 PATHS_LIST="
@@ -7766,6 +7768,7 @@ fi
 
 enabled rust_hlswriter && enable rust
 enabled rust_hlsparser && enable rust
+enabled rust_hlsdemux_parser && enable rust
 
 if enabled rust_hlswriter; then
     add_cppflags -DCONFIG_RUST_HLSWRITER
@@ -7773,6 +7776,10 @@ fi
 
 if enabled rust_hlsparser; then
     add_cppflags -DCONFIG_RUST_HLSPARSER
+fi
+
+if enabled rust_hlsdemux_parser; then
+    add_cppflags -DCONFIG_RUST_HLSDEMUX_PARSER
 fi
 
 enabled neon_clobber_test &&
