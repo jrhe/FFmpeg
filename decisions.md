@@ -69,3 +69,7 @@ This file tracks choices that affect multiple future “Rust islands”. None of
 
 3. **DASH MPD parsing dependencies**
    - Decide whether Rust MPD parsing can use an XML crate (license audit + build/cross-compile implications) or must be a minimal, internal parser.
+
+## P1 status log
+
+- 2025-12-17: Added benches + fuzz harnesses for Rust WebVTT/SubRip and ran `make fate` with `FATE_SAMPLES=./fate-suite`; no remaining P1 blockers identified.

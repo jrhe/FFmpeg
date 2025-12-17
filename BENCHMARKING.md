@@ -67,3 +67,19 @@ Run:
 `./tools/bench_hlswriter 2000000 7`
 
 This benchmark prints both a small C baseline (`hlswriter(c)`) and the Rust path (`hlswriter(rust)`).
+
+## WebVTT parser
+
+Microbenchmark (CPU + wall):
+
+`./configure --disable-programs --enable-rust-webvtt`
+`make tools/bench_webvtt`
+`./tools/bench_webvtt 2000000`
+
+## SubRip (SRT) parser
+
+Microbenchmark (CPU + wall):
+
+`./configure --disable-programs --enable-rust-subrip`
+`make tools/bench_subrip`
+`./tools/bench_subrip 2000000`

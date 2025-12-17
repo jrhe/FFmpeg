@@ -29,7 +29,11 @@ tools/bench_common.c
 tools/bench_common.h
 tools/bench_hlsparser.c
 tools/bench_hlswriter.c
+tools/bench_subrip.c
+tools/bench_webvtt.c
 tools/target_hlsproto_fuzzer.c
+tools/target_subrip_fuzzer.c
+tools/target_webvtt_fuzzer.c
 tools/uncoded_frame.c
 tools/yuvcmp.c
 Headers without standard inclusion guards:
