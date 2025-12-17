@@ -29,7 +29,7 @@
 #include "avformat.h"
 #include "hlsplaylist.h"
 
-#ifdef HAVE_FFMPEG_RUST
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_HLSWRITER)
 #include "../rust/ffmpeg-hlswriter/include/ffmpeg_rs_hlswriter.h"
 #endif
 
@@ -38,7 +38,7 @@ void ff_hls_write_playlist_version(AVIOContext *out, int version)
     if (!out)
         return;
 
-#ifdef HAVE_FFMPEG_RUST
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_HLSWRITER)
     {
         char buf[64];
         ptrdiff_t n = ffmpeg_rs_hls_write_playlist_version(buf, sizeof(buf), version);

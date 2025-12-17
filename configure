@@ -114,6 +114,7 @@ Configuration options:
 
 Rust options:
   --enable-rust            build optional Rust components [no]
+  --enable-rust-hlswriter  enable Rust HLS playlist writer [no]
 
 Program options:
   --disable-programs       do not build command line programs
@@ -2737,6 +2738,7 @@ CMDLINE_SELECT="
     stripping
     version_tracking
     rust
+    rust_hlswriter
 "
 
 PATHS_LIST="
@@ -7758,6 +7760,12 @@ if enabled rust; then
     check_cmd rustc "$rustc" --version || die "rustc not found; install Rust or use --disable-rust"
     check_cmd cargo "$cargo" --version || die "cargo not found; install Rust or use --disable-rust"
     add_cppflags -DHAVE_FFMPEG_RUST
+fi
+
+enabled rust_hlswriter && enable rust
+
+if enabled rust_hlswriter; then
+    add_cppflags -DCONFIG_RUST_HLSWRITER
 fi
 
 enabled neon_clobber_test &&
