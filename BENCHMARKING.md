@@ -193,3 +193,10 @@ Fuzz harness (Start attribute parsing):
 
 `./configure --disable-programs --enable-rust-sami`
 `make tools/target_sami_start_fuzzer.o`
+
+## ASS helpers
+
+Fuzz harness (Dialogue line parsing):
+
+`./configure --disable-programs --enable-rust-ass`
+`make tools/target_ass_dialogue_fuzzer.o`

@@ -84,6 +84,9 @@ tools/target_aqtitle_marker_fuzzer.o: tools/target_aqtitle_marker_fuzzer.c
 tools/target_sami_start_fuzzer.o: tools/target_sami_start_fuzzer.c
 	$(COMPILE_C)
 
+tools/target_ass_dialogue_fuzzer.o: tools/target_ass_dialogue_fuzzer.c
+	$(COMPILE_C)
+
 tools/bench_common.o: tools/bench_common.c
 	$(COMPILE_C)
 

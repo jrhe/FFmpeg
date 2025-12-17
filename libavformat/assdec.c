@@ -28,6 +28,10 @@
 #include "subtitles.h"
 #include "libavutil/bprint.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_ASS)
+#include "../rust/ffmpeg-ass/include/ffmpeg_rs_ass.h"
+#endif
+
 typedef struct ASSContext {
     FFDemuxSubtitlesQueue q;
     unsigned readorder;
@@ -58,6 +62,27 @@ static int read_dialogue(ASSContext *ass, AVBPrint *dst, const uint8_t *p,
     int hh1, mm1, ss1, ms1;
     int hh2, mm2, ss2, ms2;
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_ASS)
+    {
+        FFmpegRsAssDialogueParseResult r;
+        if (ffmpeg_rs_ass_parse_dialogue(p, strlen(p), &r) == 0) {
+            *start = r.start_cs;
+            *duration = r.duration_cs;
+
+            av_bprint_clear(dst);
+            av_bprintf(dst, "%u,%d,%s", ass->readorder++, r.layer, p + r.rest_off);
+            if (!av_bprint_is_complete(dst))
+                return AVERROR(ENOMEM);
+
+            while (dst->len > 0 &&
+                   (dst->str[dst->len - 1] == '\r' ||
+                    dst->str[dst->len - 1] == '\n'))
+                dst->str[--dst->len] = 0;
+            return 0;
+        }
+    }
+#endif
+
     if (sscanf(p, "Dialogue: %*[^,],%d:%d:%d%*c%d,%d:%d:%d%*c%d,%n",
                &hh1, &mm1, &ss1, &ms1,
                &hh2, &mm2, &ss2, &ms2, &pos) >= 8 && pos > 0) {
@@ -79,8 +104,8 @@ static int read_dialogue(ASSContext *ass, AVBPrint *dst, const uint8_t *p,
 
         /* right strip the buffer */
         while (dst->len > 0 &&
-               dst->str[dst->len - 1] == '\r' ||
-               dst->str[dst->len - 1] == '\n')
+               (dst->str[dst->len - 1] == '\r' ||
+                dst->str[dst->len - 1] == '\n'))
             dst->str[--dst->len] = 0;
         return 0;
     }
