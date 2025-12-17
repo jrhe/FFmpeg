@@ -58,3 +58,14 @@ This file tracks choices that affect multiple future “Rust islands”. None of
 1. **Fuzz throughput harness**
    - Add a simple, reproducible way to measure executions/sec for each fuzzer target.
    - Options: libFuzzer-based run in CI, or a local “tight loop” harness that calls the fuzzer entrypoint over corpus inputs.
+
+## Blocking/feedback needed (captured while continuing)
+
+1. **P1 scope realism**
+   - P1 includes substantial features (full HLS demuxer playlist parsing + DASH MPD + VTT/SRT). Implementing all of these robustly is non-trivial and will require agreeing on coverage targets, dependency policy (XML parsing), and which exact tags/features must be supported for parity.
+
+2. **HLS demuxer parser boundary**
+   - HLS demuxer `parse_playlist()` handles many tags (KEY, MAP, MEDIA renditions, byterange, playlist type, etc.). We need to decide whether the Rust parser replaces the whole function or only a subset initially (and keeps some tag parsing in C).
+
+3. **DASH MPD parsing dependencies**
+   - Decide whether Rust MPD parsing can use an XML crate (license audit + build/cross-compile implications) or must be a minimal, internal parser.
