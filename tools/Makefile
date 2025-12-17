@@ -45,6 +45,9 @@ tools/target_subrip_fuzzer.o: tools/target_subrip_fuzzer.c
 tools/target_microdvd_line_fuzzer.o: tools/target_microdvd_line_fuzzer.c
 	$(COMPILE_C)
 
+tools/target_ttml_extradata_fuzzer.o: tools/target_ttml_extradata_fuzzer.c
+	$(COMPILE_C)
+
 tools/bench_common.o: tools/bench_common.c
 	$(COMPILE_C)
 

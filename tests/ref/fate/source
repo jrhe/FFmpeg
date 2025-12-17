@@ -26,6 +26,7 @@ rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsparser.h
 rust/ffmpeg-hlswriter/include/ffmpeg_rs_hlswriter.h
 rust/ffmpeg-microdvd/include/ffmpeg_rs_microdvd.h
 rust/ffmpeg-subrip/include/ffmpeg_rs_subrip.h
+rust/ffmpeg-ttml/include/ffmpeg_rs_ttml.h
 rust/ffmpeg-webvtt/include/ffmpeg_rs_webvtt.h
 tools/bench_common.c
 tools/bench_common.h
@@ -37,6 +38,7 @@ tools/target_hlsdemux_events_fuzzer.c
 tools/target_hlsproto_fuzzer.c
 tools/target_microdvd_line_fuzzer.c
 tools/target_subrip_fuzzer.c
+tools/target_ttml_extradata_fuzzer.c
 tools/target_webvtt_fuzzer.c
 tools/uncoded_frame.c
 tools/yuvcmp.c
@@ -53,6 +55,7 @@ rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsparser.h
 rust/ffmpeg-hlswriter/include/ffmpeg_rs_hlswriter.h
 rust/ffmpeg-microdvd/include/ffmpeg_rs_microdvd.h
 rust/ffmpeg-subrip/include/ffmpeg_rs_subrip.h
+rust/ffmpeg-ttml/include/ffmpeg_rs_ttml.h
 rust/ffmpeg-webvtt/include/ffmpeg_rs_webvtt.h
 tools/bench_common.h
 tools/decode_simple.h

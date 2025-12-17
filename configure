@@ -121,6 +121,7 @@ Rust options:
   --enable-rust-webvtt     enable Rust WebVTT parser (subset) [no]
   --enable-rust-subrip     enable Rust SubRip/SRT parser (subset) [no]
   --enable-rust-microdvd   enable Rust MicroDVD subtitle parser (subset) [no]
+  --enable-rust-ttml       enable Rust TTML helpers (subset) [no]
 
 Program options:
   --disable-programs       do not build command line programs
@@ -2751,6 +2752,7 @@ CMDLINE_SELECT="
     rust_webvtt
     rust_subrip
     rust_microdvd
+    rust_ttml
 "
 
 PATHS_LIST="
@@ -7781,6 +7783,7 @@ enabled rust_hlsdemux_apply && enable rust
 enabled rust_webvtt && enable rust
 enabled rust_subrip && enable rust
 enabled rust_microdvd && enable rust
+enabled rust_ttml && enable rust
 
 if enabled rust_hlswriter; then
     add_cppflags -DCONFIG_RUST_HLSWRITER
@@ -7808,6 +7811,10 @@ fi
 
 if enabled rust_microdvd; then
     add_cppflags -DCONFIG_RUST_MICRODVD
+fi
+
+if enabled rust_ttml; then
+    add_cppflags -DCONFIG_RUST_TTML
 fi
 
 enabled neon_clobber_test &&

@@ -97,6 +97,7 @@ Goal: avoid a “big bang” rewrite of `libavformat/hls.c:parse_playlist()` whi
 ## Next targets
 
 - MicroDVD: keep C demuxer semantics but move per-line parsing into Rust behind `--enable-rust-microdvd`, then add a full-file event parser only if needed for performance.
+- TTML: treat the first step as hardening parsing of `ttmlenc` extradata (NUL-separated strings) in Rust; defer full TTML XML parsing until we decide on XML dependencies.
 
 ## P1 status log
 

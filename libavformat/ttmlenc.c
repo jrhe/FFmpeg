@@ -35,6 +35,10 @@
 #include "libavcodec/ttmlenc.h"
 #include "libavutil/internal.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_TTML)
+#include "../rust/ffmpeg-ttml/include/ffmpeg_rs_ttml.h"
+#endif
+
 enum TTMLPacketType {
     PACKET_TYPE_PARAGRAPH,
     PACKET_TYPE_DOCUMENT,
@@ -82,12 +86,37 @@ static void ttml_write_time(AVIOContext *pb, const char tag[],
 static int ttml_set_header_values_from_extradata(
     AVCodecParameters *par, struct TTMLHeaderParameters *header_params)
 {
-    size_t additional_data_size =
-        par->extradata_size - TTMLENC_EXTRADATA_SIGNATURE_SIZE;
-    char *value =
-        (char *)par->extradata + TTMLENC_EXTRADATA_SIGNATURE_SIZE;
-    size_t value_size = av_strnlen(value, additional_data_size);
+    size_t additional_data_size;
+    char *value;
+    size_t value_size;
     struct TTMLHeaderParameters local_params = { 0 };
+
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_TTML)
+    {
+        FFmpegRsTtmlExtradataParseResult r = {0};
+        if (par->extradata && par->extradata_size > 0 &&
+            ffmpeg_rs_ttml_parse_extradata((const uint8_t *)par->extradata, par->extradata_size, &r) == 0 &&
+            r.is_paragraph_mode) {
+            if (r.is_default) {
+                header_params->tt_element_params = TTML_DEFAULT_NAMESPACING;
+                header_params->pre_body_elements = "";
+                return 0;
+            }
+            if (r.tt_params_offset >= (size_t)par->extradata_size ||
+                r.pre_body_offset >= (size_t)par->extradata_size) {
+                return AVERROR_INVALIDDATA;
+            }
+            local_params.tt_element_params = (const char *)par->extradata + r.tt_params_offset;
+            local_params.pre_body_elements = (const char *)par->extradata + r.pre_body_offset;
+            *header_params = local_params;
+            return 0;
+        }
+    }
+#endif
+
+    additional_data_size = par->extradata_size - TTMLENC_EXTRADATA_SIGNATURE_SIZE;
+    value = (char *)par->extradata + TTMLENC_EXTRADATA_SIGNATURE_SIZE;
+    value_size = av_strnlen(value, additional_data_size);
 
     if (!additional_data_size) {
         // simple case, we don't have to go through local_params and just

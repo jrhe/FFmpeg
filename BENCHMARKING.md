@@ -102,3 +102,10 @@ Fuzz harness (line parser):
 
 `./configure --disable-programs --enable-rust-microdvd`
 `make tools/target_microdvd_line_fuzzer.o`
+
+## TTML helpers
+
+Fuzz harness (extradata parser):
+
+`./configure --disable-programs --enable-rust-ttml`
+`make tools/target_ttml_extradata_fuzzer.o`
