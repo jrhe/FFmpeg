@@ -32,6 +32,10 @@
 #include "libavutil/bprint.h"
 #include "libavutil/mem.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_REALTEXT)
+#include "../rust/ffmpeg-realtext/include/ffmpeg_rs_realtext.h"
+#endif
+
 typedef struct {
     FFDemuxSubtitlesQueue q;
 } RealTextContext;
@@ -48,6 +52,11 @@ static int realtext_probe(const AVProbeData *p)
 
 static int64_t read_ts(const char *s)
 {
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_REALTEXT)
+    int64_t out = 0;
+    if (ffmpeg_rs_realtext_read_ts((const uint8_t *)s, strlen(s), &out) == 0)
+        return out;
+#endif
     int hh, mm, ss, ms;
 
     if (sscanf(s, "%u:%u:%u.%u", &hh, &mm, &ss, &ms) == 4) return (hh*3600LL + mm*60LL + ss) * 100LL + ms;

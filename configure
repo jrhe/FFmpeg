@@ -132,6 +132,7 @@ Rust options:
   --enable-rust-lrc        enable Rust LRC timestamp helper (subset) [no]
   --enable-rust-mpsub      enable Rust MPSub timing helper (subset) [no]
   --enable-rust-pjs        enable Rust PJS line parser helper (subset) [no]
+  --enable-rust-realtext   enable Rust RealText timestamp helper (subset) [no]
 
 Program options:
   --disable-programs       do not build command line programs
@@ -2773,6 +2774,7 @@ CMDLINE_SELECT="
     rust_lrc
     rust_mpsub
     rust_pjs
+    rust_realtext
 "
 
 PATHS_LIST="
@@ -7814,6 +7816,7 @@ enabled rust_stl && enable rust
 enabled rust_lrc && enable rust
 enabled rust_mpsub && enable rust
 enabled rust_pjs && enable rust
+enabled rust_realtext && enable rust
 
 if enabled rust_hlswriter; then
     add_cppflags -DCONFIG_RUST_HLSWRITER
@@ -7885,6 +7888,10 @@ fi
 
 if enabled rust_pjs; then
     add_cppflags -DCONFIG_RUST_PJS
+fi
+
+if enabled rust_realtext; then
+    add_cppflags -DCONFIG_RUST_REALTEXT
 fi
 
 enabled neon_clobber_test &&

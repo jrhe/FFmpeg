@@ -172,3 +172,10 @@ Fuzz harness (line parsing):
 
 `./configure --disable-programs --enable-rust-pjs`
 `make tools/target_pjs_line_fuzzer.o`
+
+## RealText helpers
+
+Fuzz harness (timestamp parsing):
+
+`./configure --disable-programs --enable-rust-realtext`
+`make tools/target_realtext_ts_fuzzer.o`
