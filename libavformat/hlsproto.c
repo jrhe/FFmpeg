@@ -32,6 +32,10 @@
 #include "internal.h"
 #include "url.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_HLSPARSER)
+#include "../rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsparser.h"
+#endif
+
 /*
  * An apple http stream consists of a playlist with media segment files,
  * played sequentially. There may be several playlists with the same
@@ -121,6 +125,125 @@ static int parse_playlist(URLContext *h, const char *url)
 
     free_segment_list(s);
     s->finished = 0;
+
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_HLSPARSER)
+    {
+        uint8_t *buf = NULL;
+        size_t buf_len = 0;
+        size_t buf_cap = 0;
+
+        // Rewind by reopening and reading full file.
+        avio_close(in);
+        if ((ret = ffio_open_whitelist(&in, url, AVIO_FLAG_READ,
+                                       &h->interrupt_callback, NULL,
+                                       h->protocol_whitelist, h->protocol_blacklist)) < 0)
+            return ret;
+
+        while (!avio_feof(in)) {
+            uint8_t tmp[4096];
+            int n = avio_read(in, tmp, sizeof(tmp));
+            if (n < 0) {
+                ret = n;
+                goto fail;
+            }
+            if (n == 0)
+                break;
+            if (buf_len + (size_t)n + 1 > buf_cap) {
+                size_t new_cap = buf_cap ? buf_cap * 2 : 8192;
+                while (new_cap < buf_len + (size_t)n + 1)
+                    new_cap *= 2;
+                buf = av_realloc(buf, new_cap);
+                if (!buf) {
+                    ret = AVERROR(ENOMEM);
+                    goto fail;
+                }
+                buf_cap = new_cap;
+            }
+            memcpy(buf + buf_len, tmp, n);
+            buf_len += (size_t)n;
+        }
+        if (!buf) {
+            ret = AVERROR_INVALIDDATA;
+            goto fail;
+        }
+        buf[buf_len] = 0;
+
+        // Pre-allocate arrays, grow if needed.
+        size_t seg_cap = 128;
+        size_t var_cap = 32;
+        FFmpegRsHlsSegment *segs = av_malloc_array(seg_cap, sizeof(*segs));
+        FFmpegRsHlsVariant *vars = av_malloc_array(var_cap, sizeof(*vars));
+        FFmpegRsHlsPlaylist pl;
+        if (!segs || !vars) {
+            av_free(segs);
+            av_free(vars);
+            av_free(buf);
+            ret = AVERROR(ENOMEM);
+            goto fail;
+        }
+
+        for (;;) {
+            int r = ffmpeg_rs_hls_parse(buf, buf_len, &pl, segs, seg_cap, vars, var_cap);
+            if (r == 0)
+                break;
+            // Parser only fails on invalid input; fallback to C parsing.
+            av_free(segs);
+            av_free(vars);
+            av_free(buf);
+            goto c_fallback;
+        }
+
+        s->target_duration = pl.target_duration_us;
+        s->start_seq_no = pl.start_seq_no;
+        s->finished = pl.finished;
+
+        for (size_t i = 0; i < pl.n_segments && i < seg_cap; i++) {
+            struct segment *seg = av_malloc(sizeof(*seg));
+            if (!seg) {
+                ret = AVERROR(ENOMEM);
+                break;
+            }
+            seg->duration = segs[i].duration_us;
+            if (segs[i].url_offset + segs[i].url_len <= buf_len) {
+                char tmpurl[1024];
+                size_t n = FFMIN((size_t)segs[i].url_len, sizeof(tmpurl) - 1);
+                memcpy(tmpurl, buf + segs[i].url_offset, n);
+                tmpurl[n] = 0;
+                ff_make_absolute_url(seg->url, sizeof(seg->url), url, tmpurl);
+                dynarray_add(&s->segments, &s->n_segments, seg);
+            } else {
+                av_free(seg);
+            }
+        }
+
+        for (size_t i = 0; i < pl.n_variants && i < var_cap; i++) {
+            struct variant *var = av_malloc(sizeof(*var));
+            if (!var) {
+                ret = AVERROR(ENOMEM);
+                break;
+            }
+            var->bandwidth = vars[i].bandwidth;
+            if (vars[i].url_offset + vars[i].url_len <= buf_len) {
+                char tmpurl[1024];
+                size_t n = FFMIN((size_t)vars[i].url_len, sizeof(tmpurl) - 1);
+                memcpy(tmpurl, buf + vars[i].url_offset, n);
+                tmpurl[n] = 0;
+                ff_make_absolute_url(var->url, sizeof(var->url), url, tmpurl);
+                dynarray_add(&s->variants, &s->n_variants, var);
+            } else {
+                av_free(var);
+            }
+        }
+
+        s->last_load_time = av_gettime_relative();
+
+        av_free(segs);
+        av_free(vars);
+        av_free(buf);
+        goto fail;
+    }
+c_fallback:
+#endif
     while (!avio_feof(in)) {
         ff_get_chomp_line(in, line, sizeof(line));
         if (av_strstart(line, "#EXT-X-STREAM-INF:", &ptr)) {
