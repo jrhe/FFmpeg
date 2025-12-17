@@ -28,6 +28,10 @@
 #include "internal.h"
 #include "subtitles.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_MPSUB)
+#include "../rust/ffmpeg-mpsub/include/ffmpeg_rs_mpsub.h"
+#endif
+
 #define TSBASE 10000000
 
 typedef struct {
@@ -56,6 +60,9 @@ static int mpsub_probe(const AVProbeData *p)
 
 static int parse_line(const char *line, int64_t *value, int64_t *value2)
 {
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_MPSUB)
+    return ffmpeg_rs_mpsub_parse_line((const uint8_t *)line, strlen(line), value, value2);
+#else
     int vi, p1, p2;
 
     for (vi = 0; vi < 2; vi++) {
@@ -85,6 +92,7 @@ static int parse_line(const char *line, int64_t *value, int64_t *value2)
     }
 
     return 0;
+#endif
 }
 
 static int mpsub_read_header(AVFormatContext *s)

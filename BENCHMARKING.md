@@ -158,3 +158,10 @@ Fuzz harness (timestamp parsing):
 
 `./configure --disable-programs --enable-rust-lrc`
 `make tools/target_lrc_ts_fuzzer.o`
+
+## MPSub helpers
+
+Fuzz harness (timing line parsing):
+
+`./configure --disable-programs --enable-rust-mpsub`
+`make tools/target_mpsub_line_fuzzer.o`
