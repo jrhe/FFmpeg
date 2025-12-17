@@ -32,6 +32,7 @@ rust/ffmpeg-mpl2/include/ffmpeg_rs_mpl2.h
 rust/ffmpeg-mpsub/include/ffmpeg_rs_mpsub.h
 rust/ffmpeg-pjs/include/ffmpeg_rs_pjs.h
 rust/ffmpeg-realtext/include/ffmpeg_rs_realtext.h
+rust/ffmpeg-sami/include/ffmpeg_rs_sami.h
 rust/ffmpeg-scc/include/ffmpeg_rs_scc.h
 rust/ffmpeg-stl/include/ffmpeg_rs_stl.h
 rust/ffmpeg-subrip/include/ffmpeg_rs_subrip.h
@@ -55,6 +56,7 @@ tools/target_mpl2_line_fuzzer.c
 tools/target_mpsub_line_fuzzer.c
 tools/target_pjs_line_fuzzer.c
 tools/target_realtext_ts_fuzzer.c
+tools/target_sami_start_fuzzer.c
 tools/target_scc_words_fuzzer.c
 tools/target_stl_line_fuzzer.c
 tools/target_subrip_fuzzer.c
@@ -83,6 +85,7 @@ rust/ffmpeg-mpl2/include/ffmpeg_rs_mpl2.h
 rust/ffmpeg-mpsub/include/ffmpeg_rs_mpsub.h
 rust/ffmpeg-pjs/include/ffmpeg_rs_pjs.h
 rust/ffmpeg-realtext/include/ffmpeg_rs_realtext.h
+rust/ffmpeg-sami/include/ffmpeg_rs_sami.h
 rust/ffmpeg-scc/include/ffmpeg_rs_scc.h
 rust/ffmpeg-stl/include/ffmpeg_rs_stl.h
 rust/ffmpeg-subrip/include/ffmpeg_rs_subrip.h

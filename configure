@@ -134,6 +134,7 @@ Rust options:
   --enable-rust-pjs        enable Rust PJS line parser helper (subset) [no]
   --enable-rust-realtext   enable Rust RealText timestamp helper (subset) [no]
   --enable-rust-aqtitle    enable Rust AQTitle marker helper (subset) [no]
+  --enable-rust-sami       enable Rust SAMI Start attribute helper (subset) [no]
 
 Program options:
   --disable-programs       do not build command line programs
@@ -2777,6 +2778,7 @@ CMDLINE_SELECT="
     rust_pjs
     rust_realtext
     rust_aqtitle
+    rust_sami
 "
 
 PATHS_LIST="
@@ -7820,6 +7822,7 @@ enabled rust_mpsub && enable rust
 enabled rust_pjs && enable rust
 enabled rust_realtext && enable rust
 enabled rust_aqtitle && enable rust
+enabled rust_sami && enable rust
 
 if enabled rust_hlswriter; then
     add_cppflags -DCONFIG_RUST_HLSWRITER
@@ -7899,6 +7902,10 @@ fi
 
 if enabled rust_aqtitle; then
     add_cppflags -DCONFIG_RUST_AQTITLE
+fi
+
+if enabled rust_sami; then
+    add_cppflags -DCONFIG_RUST_SAMI
 fi
 
 enabled neon_clobber_test &&

@@ -79,6 +79,7 @@ Legend:
 | PJS helpers | `--enable-rust-pjs` | `libavformat/pjsdec.c` | `make fate-sub-pjs` + `make fate` | `tools/target_pjs_line_fuzzer.c` | planned | done (subset) |
 | RealText helpers | `--enable-rust-realtext` | `libavformat/realtextdec.c` | `make fate-sub-realtext` + `make fate` | `tools/target_realtext_ts_fuzzer.c` | planned | done (subset) |
 | AQTitle helpers | `--enable-rust-aqtitle` | `libavformat/aqtitledec.c` | `make fate-sub-aqtitle` + `make fate` | `tools/target_aqtitle_marker_fuzzer.c` | planned | done (subset) |
+| SAMI helpers | `--enable-rust-sami` | `libavformat/samidec.c` | `make fate-sub-sami*` + `make fate` | `tools/target_sami_start_fuzzer.c` | planned | done (subset) |
 
 ### Demuxers / Muxers
 

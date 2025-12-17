@@ -31,6 +31,10 @@
 #include "libavutil/avstring.h"
 #include "libavutil/bprint.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_SAMI)
+#include "../rust/ffmpeg-sami/include/ffmpeg_rs_sami.h"
+#endif
+
 typedef struct {
     FFDemuxSubtitlesQueue q;
 } SAMIContext;
@@ -98,7 +102,19 @@ static int sami_read_header(AVFormatContext *s)
             if (is_sync) {
                 const char *p = ff_smil_get_attr_ptr(buf.str, "Start");
                 sub->pos      = pos;
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_SAMI)
+                if (p) {
+                    int64_t start_ms = 0;
+                    if (ffmpeg_rs_sami_parse_start_ms((const uint8_t *)p, strlen(p), &start_ms) == 0)
+                        sub->pts = start_ms;
+                    else
+                        sub->pts = strtol(p, NULL, 10);
+                } else {
+                    sub->pts = 0;
+                }
+#else
                 sub->pts      = p ? strtol(p, NULL, 10) : 0;
+#endif
                 if (sub->pts <= INT64_MIN/2 || sub->pts >= INT64_MAX/2) {
                     res = AVERROR_PATCHWELCOME;
                     av_bprint_finalize(&hdr_buf, NULL);

@@ -186,3 +186,10 @@ Fuzz harness (marker parsing):
 
 `./configure --disable-programs --enable-rust-aqtitle`
 `make tools/target_aqtitle_marker_fuzzer.o`
+
+## SAMI helpers
+
+Fuzz harness (Start attribute parsing):
+
+`./configure --disable-programs --enable-rust-sami`
+`make tools/target_sami_start_fuzzer.o`
