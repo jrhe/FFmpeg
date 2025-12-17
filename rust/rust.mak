@@ -29,7 +29,7 @@ $(RUST_FFMPEG_FFI_LIB):
 	$(M)cd $(RUST_FFMPEG_FFI_DIR) && $(CARGO) -q build $(RUST_CARGO_PROFILE) $(RUST_CARGO_TARGET_ARG)
 
 clean::
-	$(Q)$(CARGO) -q -C $(RUST_FFMPEG_FFI_DIR) clean || true
+	$(Q)cd $(RUST_FFMPEG_FFI_DIR) && $(CARGO) -q clean || true
 
 RUST_FFMPEG_HLSWRITER_DIR := $(SRC_PATH)/rust/ffmpeg-hlswriter
 RUST_FFMPEG_HLSWRITER_LIB := $(RUST_FFMPEG_HLSWRITER_DIR)/target/$(if $(RUST_TARGET),$(RUST_TARGET),)/$(RUST_ARTIFACT_SUBDIR)/libffmpeg_hlswriter.a
@@ -38,7 +38,7 @@ $(RUST_FFMPEG_HLSWRITER_LIB):
 	$(M)cd $(RUST_FFMPEG_HLSWRITER_DIR) && $(CARGO) -q build $(RUST_CARGO_PROFILE) $(RUST_CARGO_TARGET_ARG)
 
 clean::
-	$(Q)$(CARGO) -q -C $(RUST_FFMPEG_HLSWRITER_DIR) clean || true
+	$(Q)cd $(RUST_FFMPEG_HLSWRITER_DIR) && $(CARGO) -q clean || true
 
 RUST_FFMPEG_HLSPARSER_DIR := $(SRC_PATH)/rust/ffmpeg-hlsparser
 RUST_FFMPEG_HLSPARSER_LIB := $(RUST_FFMPEG_HLSPARSER_DIR)/target/$(if $(RUST_TARGET),$(RUST_TARGET),)/$(RUST_ARTIFACT_SUBDIR)/libffmpeg_hlsparser.a
@@ -47,7 +47,7 @@ $(RUST_FFMPEG_HLSPARSER_LIB):
 	$(M)cd $(RUST_FFMPEG_HLSPARSER_DIR) && $(CARGO) -q build $(RUST_CARGO_PROFILE) $(RUST_CARGO_TARGET_ARG)
 
 clean::
-	$(Q)$(CARGO) -q -C $(RUST_FFMPEG_HLSPARSER_DIR) clean || true
+	$(Q)cd $(RUST_FFMPEG_HLSPARSER_DIR) && $(CARGO) -q clean || true
 
 # Build all known Rust crates.
 rust-libs: $(RUST_FFMPEG_FFI_LIB) $(RUST_FFMPEG_HLSWRITER_LIB) $(RUST_FFMPEG_HLSPARSER_LIB)
