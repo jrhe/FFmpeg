@@ -273,7 +273,6 @@ OBJS-$(CONFIG_EVC_MUXER)                 += rawenc.o
 OBJS-$(CONFIG_HLS_DEMUXER)               += hls.o hls_sample_encryption.o
 OBJS-$(CONFIG_HLS_MUXER)                 += hlsenc.o hlsplaylist.o
 
-EXTRALIBS += $(if $(HAVE_FFMPEG_RUST),$(SRC_PATH)/rust/ffmpeg-hlswriter/target/release/libffmpeg_hlswriter.a)
 OBJS-$(CONFIG_HNM_DEMUXER)               += hnm.o
 OBJS-$(CONFIG_HXVS_DEMUXER)              += hxvs.o
 OBJS-$(CONFIG_IAMF_DEMUXER)              += iamfdec.o

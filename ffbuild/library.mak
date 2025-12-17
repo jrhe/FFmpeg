@@ -1,5 +1,7 @@
 include $(SRC_PATH)/ffbuild/common.mak
 
+# Optional Rust integration (already included by ffbuild/common.mak).
+
 ifeq (,$(filter %clean config,$(MAKECMDGOALS)))
 -include $(SUBDIR)lib$(NAME).version
 endif
@@ -59,8 +61,11 @@ $(NAME)LINK_EXE_ARGS = $(LDFLAGS) $(LDEXEFLAGS)
 $(NAME)LINK_SO_ARGS = $(SHFLAGS) $(LDFLAGS) $(LDSOFLAGS)
 $(NAME)LINK_EXTRA = $(FFEXTRALIBS)
 
-ifdef HAVE_FFMPEG_RUST
+ifdef CONFIG_RUST_HLSWRITER
 $(NAME)LINK_EXTRA += $(RUST_FFMPEG_HLSWRITER_LIB)
+endif
+
+ifdef CONFIG_RUST_HLSPARSER
 $(NAME)LINK_EXTRA += $(RUST_FFMPEG_HLSPARSER_LIB)
 endif
 
@@ -143,7 +148,10 @@ $(TOOLS):     $(DEP_LIBS) $(SUBDIR)$($(CONFIG_SHARED:yes=S)LIBNAME)
 $(TESTPROGS): $(DEP_LIBS) $(SUBDIR)$(LIBNAME)
 
 ifdef HAVE_FFMPEG_RUST
+ifeq ($(strip $(CONFIG_RUST_HLSWRITER)$(CONFIG_RUST_HLSPARSER)),)
+else
 $(TESTPROGS) $(TOOLS): | rust-libs
+endif
 endif
 
 testprogs: $(TESTPROGS)
