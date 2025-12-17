@@ -96,6 +96,12 @@ tools/target_mcc_payload_fuzzer.o: tools/target_mcc_payload_fuzzer.c
 tools/target_id3v2_taglen_fuzzer.o: tools/target_id3v2_taglen_fuzzer.c
 	$(COMPILE_C)
 
+tools/target_concat_token_fuzzer.o: tools/target_concat_token_fuzzer.c
+	$(COMPILE_C)
+
+tools/target_data_uri_fuzzer.o: tools/target_data_uri_fuzzer.c
+	$(COMPILE_C)
+
 tools/bench_common.o: tools/bench_common.c
 	$(COMPILE_C)
 

@@ -103,3 +103,5 @@ Goal: avoid a “big bang” rewrite of `libavformat/hls.c:parse_playlist()` whi
 
 - 2025-12-17: Added benches + fuzz harnesses for Rust WebVTT/SubRip and ran `make fate` with `FATE_SAMPLES=./fate-suite`; no remaining P1 blockers identified.
 - 2025-12-17: Completed Rust JACOsub timestamp/shift helpers (`--enable-rust-jacosub`) and ran `fate-sub-jacosub*`; updated linking so subtitle Rust crates are added to `ffbuild/library.mak` when enabled.
+- 2025-12-17: Added Rust helpers for ffconcat/concat demuxer token parsing (`--enable-rust-concat`) with fuzzer `tools/target_concat_token_fuzzer.c`; behavior remains C-compatible and falls back on Rust errors.
+- 2025-12-17: Added Rust `data:` URI protocol parsing helper (`--enable-rust-data-uri`) plus a deterministic FATE test (`fate-data-uri-wav`) and fuzzer `tools/target_data_uri_fuzzer.c`.

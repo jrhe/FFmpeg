@@ -8,3 +8,42 @@
 # Build outputs
 **/*.o
 **/*.d
+
+# FFmpeg configure/build artifacts
+/.version
+/config.h
+/config_components.h
+/config.log
+/config.err
+
+# Built programs (common when building in-tree)
+/ffmpeg
+/ffmpeg_g
+/ffprobe
+/ffprobe_g
+/ffplay
+/ffplay_g
+
+# In-tree library outputs
+/libav*/lib*.a
+/libav*/lib*.version
+/libav*/lib*.pc
+/libsw*/lib*.a
+/libsw*/lib*.version
+/libsw*/lib*.pc
+
+# Common platform build artifacts
+/libavfilter/metal/*.air
+/libavfilter/metal/*.metallib.c
+
+# External FATE samples checkout
+/fate-suite/
+
+# Tool binaries
+/tools/bench_hlsparser
+/tools/bench_hlswriter
+/tools/bench_webvtt
+/tools/bench_subrip
+
+# Test binaries
+/libswscale/tests/sws_ops

@@ -25,6 +25,10 @@
 #include "libavutil/mem.h"
 #include "url.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_DATA_URI)
+#include "../rust/ffmpeg-data-uri/include/ffmpeg_rs_data_uri.h"
+#endif
+
 typedef struct {
     const uint8_t *data;
     void *tofree;
@@ -42,6 +46,72 @@ static av_cold int data_open(URLContext *h, const char *uri, int flags)
 
     /* data:content/type[;base64],payload */
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_DATA_URI)
+    {
+        FFMpegRsDataUriParsed parsed = { 0 };
+        const size_t uri_len = strlen(uri) + 1;
+
+        if (ffmpeg_rs_data_uri_parse(uri, uri_len, &parsed) == 0 &&
+            parsed.payload_offset > 0 && parsed.payload_offset <= uri_len) {
+            const char *comma = uri + parsed.payload_offset - 1;
+            const char *ctype = uri + parsed.content_type_offset;
+
+            av_log(h, AV_LOG_VERBOSE, "Content-type: %.*s\n",
+                   (int)parsed.content_type_len, ctype);
+
+            base64 = parsed.base64;
+
+            opt = ctype + parsed.content_type_len;
+            while (opt < comma) {
+                if (*opt != ';')
+                    break;
+                opt++;
+                next = av_x_if_null(memchr(opt, ';', comma - opt), comma);
+                if (!av_strncasecmp(opt, "base64", next - opt)) {
+                    base64 = 1;
+                } else {
+                    av_log(h, AV_LOG_VERBOSE, "Ignoring option '%.*s'\n",
+                           (int)(next - opt), opt);
+                }
+                opt = next;
+            }
+
+            data = uri + parsed.payload_offset;
+            in_size = parsed.payload_len;
+        } else {
+            av_strstart(uri, "data:", &uri);
+            data = strchr(uri, ',');
+            if (!data) {
+                av_log(h, AV_LOG_ERROR, "No ',' delimiter in URI\n");
+                return AVERROR(EINVAL);
+            }
+            opt = uri;
+            while (opt < data) {
+                next = av_x_if_null(memchr(opt, ';', data - opt), data);
+                if (opt == uri) {
+                    if (!memchr(opt, '/', next - opt)) { /* basic validity check */
+                        av_log(h, AV_LOG_ERROR, "Invalid content-type '%.*s'\n",
+                               (int)(next - opt), opt);
+                        return AVERROR(EINVAL);
+                    }
+                    av_log(h, AV_LOG_VERBOSE, "Content-type: %.*s\n",
+                           (int)(next - opt), opt);
+                } else {
+                    if (!av_strncasecmp(opt, "base64", next - opt)) {
+                        base64 = 1;
+                    } else {
+                        av_log(h, AV_LOG_VERBOSE, "Ignoring option '%.*s'\n",
+                               (int)(next - opt), opt);
+                    }
+                }
+                opt = next + 1;
+            }
+
+            data++;
+            in_size = strlen(data);
+        }
+    }
+#else
     av_strstart(uri, "data:", &uri);
     data = strchr(uri, ',');
     if (!data) {
@@ -72,6 +142,8 @@ static av_cold int data_open(URLContext *h, const char *uri, int flags)
 
     data++;
     in_size = strlen(data);
+#endif
+
     if (base64) {
         size_t out_size = 3 * (in_size / 4) + 1;
 

@@ -87,14 +87,14 @@ Legend:
 
 | Component | Flag | Wiring | Tests | Fuzz | Bench | Status |
 |---|---|---|---|---|---|---|
-| Candidate demuxer #1 (TBD) | `--enable-rust-demux-<fmt>` | `libavformat/<fmt>.c` | targeted `fate-lavf-*` + `make fate` | planned | startup latency + A/B parse microbench | planned |
+| Concat demuxer (ffconcat) helpers | `--enable-rust-concat` | `libavformat/concatdec.c` | `make fate-concat-demuxer-*` + `make fate` | `tools/target_concat_token_fuzzer.c` | planned | done (subset) |
 | Candidate demuxer #2 (TBD) | `--enable-rust-demux-<fmt>` | `libavformat/<fmt>.c` | targeted `fate-lavf-*` + `make fate` | planned | startup latency + A/B parse microbench | planned |
 
 ### Protocol Handlers
 
 | Component | Flag | Wiring | Tests | Fuzz | Bench | Status |
 |---|---|---|---|---|---|---|
-| Candidate protocol #1 (TBD) | `--enable-rust-proto-<name>` | `libavformat/<proto>.c` | targeted protocol tests + `make fate` | planned | startup latency + A/B parse microbench | planned |
+| data: URI protocol helper | `--enable-rust-data-uri` | `libavformat/data_uri.c` | `make fate-data-uri` + `make fate` | `tools/target_data_uri_fuzzer.c` | planned | done (subset) |
 
 ### Utilities
 

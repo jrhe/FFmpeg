@@ -34,6 +34,10 @@
 #include "internal.h"
 #include "url.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_CONCAT)
+#include "../rust/ffmpeg-concat/include/ffmpeg_rs_concat.h"
+#endif
+
 typedef enum ConcatMatchMode {
     MATCH_ONE_TO_ONE,
     MATCH_EXACT_ID,
@@ -90,6 +94,58 @@ static char *get_keyword(uint8_t **cursor)
     }
     return ret;
 }
+
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_CONCAT)
+static char *get_keyword_rs(uint8_t **cursor)
+{
+    FFMpegRsConcatKeyword kw = { 0 };
+    size_t cursor_len;
+    int rc;
+
+    if (!cursor || !*cursor)
+        return NULL;
+    cursor_len = strlen((char *)*cursor) + 1;
+    rc = ffmpeg_rs_concat_parse_keyword(*cursor, cursor_len, &kw);
+    if (rc < 0)
+        return get_keyword(cursor);
+
+    if (kw.skip + kw.len < cursor_len)
+        (*cursor)[kw.skip + kw.len] = 0;
+
+    char *ret = (char *)(*cursor + kw.skip);
+    *cursor += kw.advance;
+    return ret;
+}
+
+static char *get_token_rs(const char **cursor)
+{
+    size_t cursor_len, advance = 0, required = 0;
+    char *out;
+    int rc;
+
+    if (!cursor || !*cursor)
+        return NULL;
+    cursor_len = strlen(*cursor) + 1;
+
+    rc = ffmpeg_rs_concat_get_token((const uint8_t *)*cursor, cursor_len,
+                                    NULL, 0, &advance, &required);
+    if (rc >= 0 || required == 0)
+        return NULL;
+    out = av_malloc(required);
+    if (!out)
+        return NULL;
+
+    rc = ffmpeg_rs_concat_get_token((const uint8_t *)*cursor, cursor_len,
+                                    out, required, &advance, &required);
+    if (rc < 0) {
+        av_free(out);
+        return NULL;
+    }
+
+    *cursor += advance;
+    return out;
+}
+#endif
 
 static int safe_filename(const char *f)
 {
@@ -478,7 +534,11 @@ static int concat_parse_script(AVFormatContext *avf)
     while ((ret = ff_read_line_to_bprint_overwrite(avf->pb, &bp)) >= 0) {
         line++;
         cursor = bp.str;
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_CONCAT)
+        keyword = get_keyword_rs(&cursor);
+#else
         keyword = get_keyword(&cursor);
+#endif
         if (!*keyword || *keyword == '#')
             continue;
         for (dir = syntax; dir < syntax + FF_ARRAY_ELEMS(syntax); dir++)
@@ -508,7 +568,11 @@ static int concat_parse_script(AVFormatContext *avf)
         for (arg = 0; arg < FF_ARRAY_ELEMS(dir->args) && dir->args[arg]; arg++) {
             switch (dir->args[arg]) {
             case 'd': /* duration */
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_CONCAT)
+                arg_kw[arg] = get_keyword_rs(&cursor);
+#else
                 arg_kw[arg] = get_keyword(&cursor);
+#endif
                 ret = av_parse_time(&arg_int[arg], arg_kw[arg], 1);
                 if (ret < 0) {
                     av_log(avf, AV_LOG_ERROR, "Line %d: invalid duration '%s'\n",
@@ -517,14 +581,26 @@ static int concat_parse_script(AVFormatContext *avf)
                 }
                 break;
             case 'i': /* integer */
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_CONCAT)
+                arg_int[arg] = strtol(get_keyword_rs(&cursor), NULL, 0);
+#else
                 arg_int[arg] = strtol(get_keyword(&cursor), NULL, 0);
+#endif
                 break;
             case 'k': /* keyword */
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_CONCAT)
+                arg_kw[arg] = get_keyword_rs(&cursor);
+#else
                 arg_kw[arg] = get_keyword(&cursor);
+#endif
                 break;
             case 's': /* string */
                 av_assert0(!arg_str[arg]);
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_CONCAT)
+                arg_str[arg] = get_token_rs((const char **)&cursor);
+#else
                 arg_str[arg] = av_get_token((const char **)&cursor, SPACE_CHARS);
+#endif
                 if (!arg_str[arg])
                     FAIL(AVERROR(ENOMEM));
                 if (!*arg_str[arg]) {
