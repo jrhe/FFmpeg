@@ -32,6 +32,10 @@
 #include "libavutil/intreadwrite.h"
 #include "libavutil/opt.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_WEBVTT)
+#include "../rust/ffmpeg-webvtt/include/ffmpeg_rs_webvtt.h"
+#endif
+
 typedef struct {
     const AVClass *class;
     FFDemuxSubtitlesQueue q;
@@ -99,6 +103,47 @@ static int webvtt_read_header(AVFormatContext *s)
             !strncmp(p, "REGION", 6) ||
             !strncmp(p, "NOTE", 4))
             continue;
+
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_WEBVTT)
+        {
+            FFmpegRsWebvttParseResult out = {0};
+            FFmpegRsWebvttCue rcues[1];
+            // Try Rust parser on the single chunk (one cue per chunk in this demuxer flow).
+            if (ffmpeg_rs_webvtt_parse((const uint8_t *)cue.str, cue.len, &out, rcues, 1) == 0 && out.n_cues == 1) {
+                const FFmpegRsWebvttCue *c0 = &rcues[0];
+                if (c0->payload_offset + c0->payload_len <= cue.len) {
+                    AVPacket *sub = ff_subtitles_queue_insert(&webvtt->q,
+                                                             (const char *)cue.str + c0->payload_offset,
+                                                             c0->payload_len, 0);
+                    if (!sub) {
+                        res = AVERROR(ENOMEM);
+                        goto end;
+                    }
+                    sub->pos = pos;
+                    sub->pts = c0->start_ms;
+                    sub->duration = c0->end_ms - c0->start_ms;
+
+                    if (c0->identifier_len && c0->identifier_offset + c0->identifier_len <= cue.len) {
+                        uint8_t *buf = av_packet_new_side_data(sub, AV_PKT_DATA_WEBVTT_IDENTIFIER, c0->identifier_len);
+                        if (!buf) {
+                            res = AVERROR(ENOMEM);
+                            goto end;
+                        }
+                        memcpy(buf, cue.str + c0->identifier_offset, c0->identifier_len);
+                    }
+                    if (c0->settings_len && c0->settings_offset + c0->settings_len <= cue.len) {
+                        uint8_t *buf = av_packet_new_side_data(sub, AV_PKT_DATA_WEBVTT_SETTINGS, c0->settings_len);
+                        if (!buf) {
+                            res = AVERROR(ENOMEM);
+                            goto end;
+                        }
+                        memcpy(buf, cue.str + c0->settings_offset, c0->settings_len);
+                    }
+                    continue;
+                }
+            }
+        }
+#endif
 
         /* optional cue identifier (can be a number like in SRT or some kind of
          * chaptering id) */
