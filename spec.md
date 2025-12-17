@@ -56,15 +56,15 @@ Legend:
 |---|---|---|---|---|---|---|
 | HLS playlist writer (header) | `--enable-rust-hlswriter` | `libavformat/hlsplaylist.c` | `make fate-avstring` + `cargo test` | (n/a) | `tools/bench_hlswriter` (A/B) | done |
 | HLS playlist parser (hlsproto) | `--enable-rust-hlsparser` | `libavformat/hlsproto.c` | `make fate` + `cargo test` | `tools/target_hlsproto_fuzzer.c` | `tools/bench_hlsparser` (A/B), `tools/bench_startup_latency_hlsproto*.sh` | done |
-| HLS playlist parser (HLS demuxer) | `--enable-rust-hlsdemux-parser` | `libavformat/hls.c` | targeted `fate-hls*` + `make fate` | planned | planned | planned |
+| HLS playlist parser (HLS demuxer) | `--enable-rust-hlsdemux-parser` | `libavformat/hls.c` | targeted `fate-hls*` + `make fate` | planned | planned | done (subset) |
 | DASH MPD parser | `--enable-rust-dash-mpd` | `libavformat/dash*` | targeted `fate-webm-dash-manifest*` + `make fate` | planned | planned | deferred (keep C parser for now) |
 
 ### Sidecar / Metadata
 
 | Component | Flag | Wiring | Tests | Fuzz | Bench | Status |
 |---|---|---|---|---|---|---|
-| WebVTT parser | `--enable-rust-webvtt` | `libavformat/webvttdec.c` (or shared helper) | targeted subtitles FATE + `make fate` | planned | microbench planned | planned |
-| SRT/SubRip parser | `--enable-rust-subrip` | `libavformat/srtdec.c` | targeted subtitles FATE + `make fate` | planned | microbench planned | planned |
+| WebVTT parser | `--enable-rust-webvtt` | `libavformat/webvttdec.c` (or shared helper) | targeted subtitles FATE + `make fate` | `tools/target_webvtt_fuzzer.c` | `tools/bench_webvtt` | done |
+| SRT/SubRip parser | `--enable-rust-subrip` | `libavformat/srtdec.c` | targeted subtitles FATE + `make fate` | `tools/target_subrip_fuzzer.c` | `tools/bench_subrip` | done |
 | TTML parser | `--enable-rust-ttml` | `libavformat/ttml*` | targeted subtitles FATE + `make fate` | planned | microbench planned | planned |
 
 ### Demuxers / Muxers
