@@ -34,6 +34,10 @@
 #include "libavutil/bprint.h"
 #include "libavutil/intreadwrite.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_JACOSUB)
+#include "../rust/ffmpeg-jacosub/include/ffmpeg_rs_jacosub.h"
+#endif
+
 typedef struct {
     FFDemuxSubtitlesQueue q;
     int shift;
@@ -223,7 +227,12 @@ static int jacosub_read_header(AVFormatContext *s)
         switch (cmds[i][0]) {
         case 'S': // SHIFT command affect the whole script...
             if (!shift_set) {
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_JACOSUB)
+                jacosub->shift = ffmpeg_rs_jacosub_parse_shift(jacosub->timeres,
+                                                              (const uint8_t *)p, strlen(p));
+#else
                 jacosub->shift = get_shift(jacosub->timeres, p);
+#endif
                 shift_set = 1;
             }
             av_bprintf(&header, "#S %s", p);
@@ -250,7 +259,19 @@ static int jacosub_read_header(AVFormatContext *s)
      * done in a second pass */
     for (i = 0; i < jacosub->q.nb_subs; i++) {
         AVPacket *sub = jacosub->q.subs[i];
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_JACOSUB)
+        int64_t start_cs = 0, dur_cs = 0;
+        if (ffmpeg_rs_jacosub_read_ts(jacosub->timeres, jacosub->shift,
+                                      sub->data, sub->size,
+                                      &start_cs, &dur_cs) == 0) {
+            sub->pts = start_cs;
+            sub->duration = dur_cs;
+        } else {
+            read_ts(jacosub, sub->data, &sub->pts, &sub->duration);
+        }
+#else
         read_ts(jacosub, sub->data, &sub->pts, &sub->duration);
+#endif
     }
     ff_subtitles_queue_finalize(s, &jacosub->q);
 

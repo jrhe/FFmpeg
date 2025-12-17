@@ -5,7 +5,7 @@ This file tracks choices that affect multiple future “Rust islands”. None of
 ## Build / integration
 
 1. **How should Rust crates be selected/linked?**
-   - Current: `ffbuild/library.mak` always adds Rust libs when `HAVE_FFMPEG_RUST`, even if a specific feature flag isn’t enabled.
+   - Current: `ffbuild/library.mak` links only the Rust libs needed for enabled components (e.g. `CONFIG_RUST_HLSPARSER`, `CONFIG_RUST_MICRODVD`, …) and builds `rust-libs` as a prerequisite when any `CONFIG_RUST_*` is enabled.
    - Options:
      - Link only the Rust libs needed for enabled components (`CONFIG_RUST_HLSWRITER`, `CONFIG_RUST_HLSPARSER`, …).
      - Always link all Rust libs when `--enable-rust`, but gate code usage behind `CONFIG_RUST_*`.
@@ -102,3 +102,4 @@ Goal: avoid a “big bang” rewrite of `libavformat/hls.c:parse_playlist()` whi
 ## P1 status log
 
 - 2025-12-17: Added benches + fuzz harnesses for Rust WebVTT/SubRip and ran `make fate` with `FATE_SAMPLES=./fate-suite`; no remaining P1 blockers identified.
+- 2025-12-17: Completed Rust JACOsub timestamp/shift helpers (`--enable-rust-jacosub`) and ran `fate-sub-jacosub*`; updated linking so subtitle Rust crates are added to `ffbuild/library.mak` when enabled.

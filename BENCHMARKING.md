@@ -123,3 +123,10 @@ Fuzz harness (line parser):
 
 `./configure --disable-programs --enable-rust-vplayer`
 `make tools/target_vplayer_line_fuzzer.o`
+
+## JACOsub helpers
+
+Fuzz harness (timestamp/shift parsing):
+
+`./configure --disable-programs --enable-rust-jacosub`
+`make tools/target_jacosub_ts_fuzzer.o`

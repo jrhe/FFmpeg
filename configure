@@ -124,6 +124,7 @@ Rust options:
   --enable-rust-ttml       enable Rust TTML helpers (subset) [no]
   --enable-rust-mpl2       enable Rust MPL2 subtitle parser (subset) [no]
   --enable-rust-vplayer    enable Rust VPlayer subtitle parser (subset) [no]
+  --enable-rust-jacosub    enable Rust JACOsub timestamp helpers (subset) [no]
 
 Program options:
   --disable-programs       do not build command line programs
@@ -2757,6 +2758,7 @@ CMDLINE_SELECT="
     rust_ttml
     rust_mpl2
     rust_vplayer
+    rust_jacosub
 "
 
 PATHS_LIST="
@@ -7790,6 +7792,7 @@ enabled rust_microdvd && enable rust
 enabled rust_ttml && enable rust
 enabled rust_mpl2 && enable rust
 enabled rust_vplayer && enable rust
+enabled rust_jacosub && enable rust
 
 if enabled rust_hlswriter; then
     add_cppflags -DCONFIG_RUST_HLSWRITER
@@ -7829,6 +7832,10 @@ fi
 
 if enabled rust_vplayer; then
     add_cppflags -DCONFIG_RUST_VPLAYER
+fi
+
+if enabled rust_jacosub; then
+    add_cppflags -DCONFIG_RUST_JACOSUB
 fi
 
 enabled neon_clobber_test &&
