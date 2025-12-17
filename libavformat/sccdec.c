@@ -26,6 +26,10 @@
 #include "libavutil/avstring.h"
 #include "libavutil/intreadwrite.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_SCC)
+#include "../rust/ffmpeg-scc/include/ffmpeg_rs_scc.h"
+#endif
+
 typedef struct SCCContext {
     FFDemuxSubtitlesQueue q;
 } SCCContext;
@@ -66,6 +70,9 @@ static int scc_read_header(AVFormatContext *s)
     AVPacket *sub = NULL;
     ptrdiff_t len;
     uint8_t out[4096];
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_SCC)
+    uint16_t words[2048];
+#endif
     FFTextReader tr;
 
     ff_text_init_avio(s, &tr, s->pb);
@@ -99,6 +106,42 @@ static int scc_read_header(AVFormatContext *s)
         lline  = line;
         lline += 12;
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_SCC)
+        {
+            FFmpegRsSccParseWordsResult r;
+            int out_i = 0;
+            size_t n_words = 0;
+
+            ffmpeg_rs_scc_parse_words((const uint8_t *)lline, strlen(lline),
+                                      &r, words, FF_ARRAY_ELEMS(words));
+            n_words = r.n_words_written;
+
+            for (size_t wi = 0; wi < n_words && out_i <= 4092; wi++) {
+                const uint16_t w = words[wi];
+                const uint8_t o1 = (uint8_t)(w >> 8);
+                const uint8_t o2 = (uint8_t)(w & 0xff);
+
+                if (out_i > 12 && o1 == 0x94 && o2 == 0x20 &&
+                    wi + 1 < n_words && words[wi + 1] == 0x942c && words[wi + 1] != 0x942f) {
+                    sub = ff_subtitles_queue_insert(&scc->q, out, out_i, 0);
+                    if (!sub)
+                        return AVERROR(ENOMEM);
+                    sub->pos = pos;
+                    pos += out_i;
+                    sub->pts = ts;
+                    sub->duration = out_i * 11;
+                    ts += sub->duration;
+                    out_i = 0;
+                }
+
+                out[out_i + 0] = 0xfc;
+                out[out_i + 1] = o1;
+                out[out_i + 2] = o2;
+                out_i += 3;
+            }
+            i = out_i;
+        }
+#else
         for (i = 0; i < 4095; i += 3) {
             char *ptr = av_strtok(lline, " ", &saveptr);
             char c1, c2, c3, c4;
@@ -133,6 +176,7 @@ static int scc_read_header(AVFormatContext *s)
             out[i+1] = o1;
             out[i+2] = o2;
         }
+#endif
 
         sub = ff_subtitles_queue_insert(&scc->q, out, i, 0);
         if (!sub)

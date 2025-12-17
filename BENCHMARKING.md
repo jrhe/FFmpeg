@@ -137,3 +137,10 @@ Fuzz harness (timestamp parsing):
 
 `./configure --disable-programs --enable-rust-subviewer --enable-rust-subviewer1`
 `make tools/target_subviewer_ts_fuzzer.o`
+
+## SCC helpers
+
+Fuzz harness (payload word parsing):
+
+`./configure --disable-programs --enable-rust-scc`
+`make tools/target_scc_words_fuzzer.o`

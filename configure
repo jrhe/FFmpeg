@@ -127,6 +127,7 @@ Rust options:
   --enable-rust-jacosub    enable Rust JACOsub timestamp helpers (subset) [no]
   --enable-rust-subviewer  enable Rust SubViewer timestamp helpers (subset) [no]
   --enable-rust-subviewer1 enable Rust SubViewer1 time tag helpers (subset) [no]
+  --enable-rust-scc        enable Rust SCC subtitle helper (subset) [no]
 
 Program options:
   --disable-programs       do not build command line programs
@@ -2763,6 +2764,7 @@ CMDLINE_SELECT="
     rust_jacosub
     rust_subviewer
     rust_subviewer1
+    rust_scc
 "
 
 PATHS_LIST="
@@ -7799,6 +7801,7 @@ enabled rust_vplayer && enable rust
 enabled rust_jacosub && enable rust
 enabled rust_subviewer && enable rust
 enabled rust_subviewer1 && enable rust
+enabled rust_scc && enable rust
 
 if enabled rust_hlswriter; then
     add_cppflags -DCONFIG_RUST_HLSWRITER
@@ -7850,6 +7853,10 @@ fi
 
 if enabled rust_subviewer1; then
     add_cppflags -DCONFIG_RUST_SUBVIEWER1
+fi
+
+if enabled rust_scc; then
+    add_cppflags -DCONFIG_RUST_SCC
 fi
 
 enabled neon_clobber_test &&

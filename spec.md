@@ -72,6 +72,7 @@ Legend:
 | JACOsub helpers | `--enable-rust-jacosub` | `libavformat/jacosubdec.c` | `make fate-sub-jacosub*` + `make fate` | `tools/target_jacosub_ts_fuzzer.c` | planned | done (subset) |
 | SubViewer helpers | `--enable-rust-subviewer` | `libavformat/subviewerdec.c` | `make fate-sub-subviewer` + `make fate` | `tools/target_subviewer_ts_fuzzer.c` | planned | done (subset) |
 | SubViewer1 helpers | `--enable-rust-subviewer1` | `libavformat/subviewer1dec.c` | `make fate-sub-subviewer1` + `make fate` | `tools/target_subviewer_ts_fuzzer.c` | planned | done (subset) |
+| SCC helpers | `--enable-rust-scc` | `libavformat/sccdec.c` | `make fate-sub-scc*` + `make fate` | `tools/target_scc_words_fuzzer.c` | planned | done (subset) |
 
 ### Demuxers / Muxers
 
