@@ -23,7 +23,12 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include "attributes.h"
+
+#ifdef HAVE_FFMPEG_RUST
+#include "ffmpeg_rs.h"
+#endif
 
 /**
  * @addtogroup lavu_string
@@ -66,6 +71,20 @@ int av_stristart(const char *str, const char *pfx, const char **ptr);
  *                 or a null pointer if no match
  */
 char *av_stristr(const char *haystack, const char *needle);
+
+/**
+ * Optional Rust-accelerated/sandboxed memchr implementation.
+ * Falls back to libc memchr when Rust is not enabled.
+ */
+static inline const void *av_memchr_rs(const void *haystack, size_t len, int c)
+{
+#ifdef HAVE_FFMPEG_RUST
+    const void *p = ffmpeg_rs_memchr(haystack, len, (uint8_t)c);
+    if (p)
+        return p;
+#endif
+    return memchr(haystack, c, len);
+}
 
 /**
  * Locate the first occurrence of the string needle in the string haystack

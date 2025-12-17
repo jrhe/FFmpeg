@@ -198,6 +198,9 @@ endif
 
 include $(SRC_PATH)/ffbuild/arch.mak
 
+# Optional Rust integration.
+-include $(SRC_PATH)/rust/rust.mak
+
 OBJS      += $(OBJS-yes)
 SHLIBOBJS += $(SHLIBOBJS-yes)
 STLIBOBJS += $(STLIBOBJS-yes)

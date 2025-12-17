@@ -33,6 +33,7 @@ HEADERS = adler32.h                                                     \
           error.h                                                       \
           eval.h                                                        \
           executor.h                                                    \
+          ffmpeg_rs.h                                                   \
           fifo.h                                                        \
           file.h                                                        \
           film_grain_params.h                                           \
@@ -115,6 +116,7 @@ OBJS = adler32.o                                                        \
        ambient_viewing_environment.o                                    \
        audio_fifo.o                                                     \
        avstring.o                                                       \
+       ffmpeg_rs.o                                                      \
        avsscanf.o                                                       \
        base64.o                                                         \
        blowfish.o                                                       \

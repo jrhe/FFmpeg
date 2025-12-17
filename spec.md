@@ -1,0 +1,152 @@
+# Rust Migration Spec (FFmpeg fork)
+
+## Goals
+
+- Improve memory safety and parser robustness in historically bug-dense areas (demuxers, protocol handlers, manifest/playlist parsing).
+- Keep FFmpeg’s codec inner loops, SIMD kernels, and performance-critical DSP in C/asm.
+- Avoid coupling Rust to internal FFmpeg struct layouts (e.g., do not pass `AVFormatContext*` into Rust as an API surface).
+- Migrate incrementally behind stable C ABI boundaries so upstream changes remain manageable.
+
+## Non-goals
+
+- Rewriting codec hot paths (entropy decode/encode inner loops, pixel math, SIMD).
+- Introducing Rust as a required dependency for all builds (Rust should remain optional for a long time).
+- Exposing Rust types across the boundary.
+
+## Architecture: “Rust Islands”
+
+Rust code is compiled as one or more `staticlib` crates and linked into FFmpeg.
+
+### C ABI rules
+
+- Rust entrypoints are `extern "C"` and `#[no_mangle]`.
+- Data is passed as `(ptr, len)` slices or simple POD structs with explicit layout.
+- Errors are returned as FFmpeg-style negative errno codes (or an error enum mapped to them).
+- Rust must not unwind across FFI; panics are abort-only or caught and translated.
+
+### Ownership rules
+
+- Prefer: C allocates, C frees.
+- Rust may allocate internally but must not transfer ownership to C unless using explicit alloc/free APIs.
+- No implicit global state; if state is needed, use opaque handles created/destroyed by C.
+
+### Build system rules
+
+- Rust is behind `--enable-rust` (or per-component flags later).
+- Cross compilation must be explicit: `RUST_TARGET` mirrors FFmpeg’s target triple selection.
+- Keep the “default” build unchanged when Rust is disabled.
+
+## Prioritized Conversion Backlog
+
+### Tier 0: Tooling and scaffolding (do first)
+
+1. **Build + configure integration**
+   - Detect `cargo`/`rustc`, configure `RUST_TARGET`, and build Rust crates as part of `make`.
+   - Produce deterministic artifacts and integrate with FFmpeg’s build modes (static/shared, cross, etc.).
+   - Add CI job(s) that run with Rust enabled.
+
+2. **FFI boundary library**
+   - Create a small, audited C header surface for each Rust module.
+   - Provide common helpers: bounded parsing, logging adapter, error mapping.
+
+3. **Fuzzing pipeline**
+   - Add fuzz targets for each Rust parser.
+   - Keep corpus compatibility with existing FFmpeg fuzzing where possible.
+
+### Tier 1: High-bug-density parsers (best ROI)
+
+4. **Playlist/manifest parsing**
+   - HLS playlists (`.m3u8`) and DASH MPDs (XML parsing) are complex, parsing-heavy, and relatively self-contained.
+   - Plan:
+     - Define ABI: `parse_manifest(input_ptr,len, out_ptr,out_len, ...)` producing a structured, bounded output (e.g. a compact table or JSON-like token stream).
+     - In C, keep existing demuxer logic but swap the parsing front-end behind a feature flag.
+     - Add fuzzers and regression tests for tricky edge cases.
+
+5. **Sidecar metadata formats**
+   - e.g. WebVTT, SRT, TTML, ID3 tag parsing utilities.
+   - Plan:
+     - Identify minimal API that returns parsed cues/tags as arrays of POD structs.
+     - Keep demuxers/muxers in C; call Rust to parse sidecar text/binary payloads.
+     - Ensure all allocations are done by C or via explicit “size query then fill” APIs.
+
+6. **Specific demuxers/muxers for attack-surface formats**
+   - Start with formats that are parsing-heavy and security sensitive, but not deeply intertwined.
+   - Plan:
+     - Pick one format at a time.
+     - Introduce a Rust “reader” that consumes `AVIOContext` bytes via a tiny C shim (read/seek callbacks) rather than exposing `AVIOContext*`.
+     - Return parsed packet boundaries + metadata to the existing C demuxer/muxer.
+     - Gate behind `--enable-rust-demuxer-foo` once the pattern is proven.
+
+### Tier 2: Protocol handlers (good isolation)
+
+7. **HTTP-ish / custom protocol handlers**
+   - Protocol handlers often have tricky state machines and security issues.
+   - Plan:
+     - Provide an opaque `rs_protocol_handle` with callbacks for read/write/seek.
+     - Use Rust for URL parsing, header parsing, redirects, and state machine.
+     - Keep socket I/O integration in C initially to avoid platform-specific duplication.
+
+8. **Crypto and hashing helpers (careful)**
+   - Only if it improves safety without harming performance; keep existing optimized code where critical.
+   - Plan:
+     - Start with non-hot utilities or ones used primarily for validation.
+     - Provide ABI: `hash_update(handle, ptr,len)` etc.
+     - Ensure side-channel/security considerations are documented.
+
+### Tier 3: Orchestration (not pixel math)
+
+9. **Filter graph scheduling/orchestration**
+   - Focus on correctness: queueing, cancellation, deterministic shutdown, flush logic.
+   - Plan:
+     - Introduce Rust implementation behind a stable “scheduler” interface.
+     - Keep filter implementations in C; Rust manages graph execution and threading.
+     - Add heavy test coverage: deadlock regression tests, deterministic teardown.
+
+## Per-Item Conversion Template
+
+For each component to migrate:
+
+1. **Select component + define boundaries**
+   - Identify minimal inputs/outputs that can be expressed as bytes + POD.
+
+2. **Design ABI**
+   - `init()` / `destroy()` for state.
+   - `parse()` / `step()` for processing.
+   - “size query then fill” pattern for returned data.
+
+3. **Implement Rust crate**
+   - No panics across FFI.
+   - Minimize dependencies; audit licenses.
+   - Add unit tests.
+
+4. **Wire behind existing interface**
+   - Keep the current C path as fallback.
+   - Feature-gate, log when Rust path is active.
+
+5. **Fuzz + regression tests**
+   - Add fuzz target with corpus seed.
+   - Add deterministic unit/integration tests for known tricky inputs.
+
+6. **Performance check**
+   - Ensure no extra copies in hot loops.
+   - Keep boundary crossings coarse-grained.
+
+7. **Rollout**
+   - Start experimental/opt-in.
+   - Collect crash/bug reports.
+   - Promote to default only when stable.
+
+## Milestones
+
+1. **M1: Rust build + one shipped parser**
+   - Rust optional build works on at least macOS/Linux.
+   - One parser/protocol path replaced behind a flag.
+   - Fuzz target in-tree.
+
+2. **M2: 3–5 Rust parsers**
+   - HLS/DASH + 1–2 demuxers + 1 protocol handler.
+   - CI jobs run with Rust enabled.
+
+3. **M3: Orchestration pilot (optional)**
+   - One clearly bounded scheduling/queueing subsystem behind a flag.
+

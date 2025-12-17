@@ -112,6 +112,9 @@ Configuration options:
   --disable-all            disable building components, libraries and programs
   --disable-autodetect     disable automatically detected external libraries [no]
 
+Rust options:
+  --enable-rust            build optional Rust components [no]
+
 Program options:
   --disable-programs       do not build command line programs
   --disable-ffmpeg         disable ffmpeg build
@@ -2733,6 +2736,7 @@ CMDLINE_SELECT="
     rpath
     stripping
     version_tracking
+    rust
 "
 
 PATHS_LIST="
@@ -7748,6 +7752,13 @@ test_ldflags -Wl,-Bsymbolic && append SHFLAGS -Wl,-Bsymbolic
 
 # add some strip flags
 check_stripflags -x
+
+# Rust integration (optional)
+if enabled rust; then
+    check_cmd rustc "$rustc" --version || die "rustc not found; install Rust or use --disable-rust"
+    check_cmd cargo "$cargo" --version || die "cargo not found; install Rust or use --disable-rust"
+    add_cppflags -DHAVE_FFMPEG_RUST
+fi
 
 enabled neon_clobber_test &&
     check_ldflags -Wl,--wrap,avcodec_open2              \
