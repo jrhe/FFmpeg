@@ -65,6 +65,7 @@ Legend:
 |---|---|---|---|---|---|---|
 | WebVTT parser | `--enable-rust-webvtt` | `libavformat/webvttdec.c` (or shared helper) | targeted subtitles FATE + `make fate` | `tools/target_webvtt_fuzzer.c` | `tools/bench_webvtt` | done |
 | SRT/SubRip parser | `--enable-rust-subrip` | `libavformat/srtdec.c` | targeted subtitles FATE + `make fate` | `tools/target_subrip_fuzzer.c` | `tools/bench_subrip` | done |
+| MicroDVD parser | `--enable-rust-microdvd` | `libavformat/microdvddec.c` | `make fate-sub-microdvd*` + `make fate` | `tools/target_microdvd_line_fuzzer.c` | planned | done (subset) |
 | TTML parser | `--enable-rust-ttml` | `libavformat/ttml*` | targeted subtitles FATE + `make fate` | planned | microbench planned | planned |
 
 ### Demuxers / Muxers

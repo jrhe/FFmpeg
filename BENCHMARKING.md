@@ -95,3 +95,10 @@ Microbenchmark (CPU + wall):
 `./configure --disable-programs --enable-rust-subrip`
 `make tools/bench_subrip`
 `./tools/bench_subrip 2000000`
+
+## MicroDVD parser
+
+Fuzz harness (line parser):
+
+`./configure --disable-programs --enable-rust-microdvd`
+`make tools/target_microdvd_line_fuzzer.o`

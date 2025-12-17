@@ -27,6 +27,10 @@
 #include "libavutil/intreadwrite.h"
 #include "libavutil/opt.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_MICRODVD)
+#include "../rust/ffmpeg-microdvd/include/ffmpeg_rs_microdvd.h"
+#endif
+
 #define MAX_LINESIZE 2048
 
 
@@ -127,6 +131,28 @@ static int microdvd_read_header(AVFormatContext *s)
                 continue;
             }
         }
+
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_MICRODVD)
+        {
+            FFmpegRsMicrodvdEvent ev;
+            int r = ffmpeg_rs_microdvd_parse_line((const uint8_t *)line, strlen(line), &ev);
+            if (r < 0) {
+                // Preserve existing behavior: warn and continue on malformed lines.
+                av_log(s, AV_LOG_WARNING, "Invalid event \"%s\" at line %d\n", line, i);
+                continue;
+            }
+            if (ev.payload_len == 0)
+                continue;
+            sub = ff_subtitles_queue_insert(&microdvd->q,
+                                            (const char *)(line + ev.payload_offset),
+                                            ev.payload_len, 0);
+            if (!sub)
+                return AVERROR(ENOMEM);
+            sub->pos = pos;
+            sub->pts = ev.start_frame;
+            sub->duration = ev.duration_frames;
+        }
+#else
 #define SKIP_FRAME_ID                                       \
     p = strchr(p, '}');                                     \
     if (!p) {                                               \
@@ -148,6 +174,8 @@ static int microdvd_read_header(AVFormatContext *s)
         sub->pos = pos;
         sub->pts = pts;
         sub->duration = get_duration(line);
+#undef SKIP_FRAME_ID
+#endif
     }
     ff_subtitles_queue_finalize(s, &microdvd->q);
     if (has_real_fps) {

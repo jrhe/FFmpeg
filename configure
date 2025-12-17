@@ -120,6 +120,7 @@ Rust options:
   --enable-rust-hlsdemux-apply enable Rust HLS demuxer playlist apply layer (experimental) [no]
   --enable-rust-webvtt     enable Rust WebVTT parser (subset) [no]
   --enable-rust-subrip     enable Rust SubRip/SRT parser (subset) [no]
+  --enable-rust-microdvd   enable Rust MicroDVD subtitle parser (subset) [no]
 
 Program options:
   --disable-programs       do not build command line programs
@@ -2749,6 +2750,7 @@ CMDLINE_SELECT="
     rust_hlsdemux_apply
     rust_webvtt
     rust_subrip
+    rust_microdvd
 "
 
 PATHS_LIST="
@@ -7778,6 +7780,7 @@ enabled rust_hlsdemux_parser && enable rust
 enabled rust_hlsdemux_apply && enable rust
 enabled rust_webvtt && enable rust
 enabled rust_subrip && enable rust
+enabled rust_microdvd && enable rust
 
 if enabled rust_hlswriter; then
     add_cppflags -DCONFIG_RUST_HLSWRITER
@@ -7801,6 +7804,10 @@ fi
 
 if enabled rust_subrip; then
     add_cppflags -DCONFIG_RUST_SUBRIP
+fi
+
+if enabled rust_microdvd; then
+    add_cppflags -DCONFIG_RUST_MICRODVD
 fi
 
 enabled neon_clobber_test &&

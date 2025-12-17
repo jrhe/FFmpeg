@@ -94,6 +94,10 @@ Goal: avoid a “big bang” rewrite of `libavformat/hls.c:parse_playlist()` whi
 - Grow coverage by implementing additional event kinds (KEY/MAP/MEDIA/BYTERANGE/PROGRAM-DATE-TIME/PLAYLIST-TYPE/START/…) while keeping C as the apply layer.
 - Once event coverage is high and FATE is stable, prototype a Rust apply layer behind `--enable-rust-hlsdemux-apply` and fuzz it separately (apply fuzz target should construct a minimal `HLSContext`/`playlist` and apply the event stream).
 
+## Next targets
+
+- MicroDVD: keep C demuxer semantics but move per-line parsing into Rust behind `--enable-rust-microdvd`, then add a full-file event parser only if needed for performance.
+
 ## P1 status log
 
 - 2025-12-17: Added benches + fuzz harnesses for Rust WebVTT/SubRip and ran `make fate` with `FATE_SAMPLES=./fate-suite`; no remaining P1 blockers identified.
