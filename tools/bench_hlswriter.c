@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <string.h>
+
 #include "bench_common.h"
 
 #if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_HLSWRITER)
@@ -21,6 +23,14 @@
 typedef struct {
     int version;
 } Ctx;
+
+static void c_write_once(void *p)
+{
+    const Ctx *ctx = (const Ctx *)p;
+    char buf[64];
+    // Match the output shape of ff_hls_write_playlist_version.
+    (void)snprintf(buf, sizeof(buf), "#EXTM3U\n#EXT-X-VERSION:%d\n", ctx->version);
+}
 
 static void rust_write_once(void *p)
 {
@@ -46,8 +56,13 @@ int main(int argc, char **argv)
         version = atoi(argv[2]);
 
     ctx.version = version;
+
+    r = bench_run(iters, c_write_once, &ctx);
+    printf("hlswriter(c): iters=%" PRIu64 " version=%d wall_s=%.6f cpu_s=%.6f\n",
+           iters, version, r.wall_s, r.cpu_s);
+
     r = bench_run(iters, rust_write_once, &ctx);
-    printf("hlswriter: iters=%" PRIu64 " version=%d wall_s=%.6f cpu_s=%.6f\n",
+    printf("hlswriter(rust): iters=%" PRIu64 " version=%d wall_s=%.6f cpu_s=%.6f\n",
            iters, version, r.wall_s, r.cpu_s);
     return 0;
 }

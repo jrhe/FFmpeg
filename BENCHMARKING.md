@@ -35,6 +35,10 @@ Then run:
 
 `./tools/bench_startup_latency_hlsproto.sh /path/to/playlist.m3u8 50`
 
+To compare baseline vs Rust automatically (reconfigures and rebuilds `ffprobe`):
+
+`./tools/bench_startup_latency_hlsproto_ab.sh /path/to/playlist.m3u8 50`
+
 ### Fuzz throughput
 
 Build the fuzzer object (Rust enabled):
@@ -61,3 +65,5 @@ Build:
 Run:
 
 `./tools/bench_hlswriter 2000000 7`
+
+This benchmark prints both a small C baseline (`hlswriter(c)`) and the Rust path (`hlswriter(rust)`).
