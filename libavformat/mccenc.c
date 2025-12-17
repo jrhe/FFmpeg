@@ -39,6 +39,10 @@
 #include "libavutil/time_internal.h" // for localtime_r
 #include "libavutil/timecode.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_MCC)
+#include "../rust/ffmpeg-mcc/include/ffmpeg_rs_mcc.h"
+#endif
+
 typedef struct MCCContext {
     const AVClass *class;
     AVTimecode timecode;
@@ -195,6 +199,10 @@ static int mcc_write_header(AVFormatContext *avf)
 /// convert the input bytes to hexadecimal with mcc's aliases
 static void mcc_bytes_to_hex(char *dest, const uint8_t *bytes, size_t bytes_size, int use_u_alias)
 {
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_MCC)
+    if (ffmpeg_rs_mcc_bytes_to_hex(dest, 1 + 2 * bytes_size, bytes, bytes_size, use_u_alias) == 0)
+        return;
+#endif
     while (bytes_size != 0) {
         switch (bytes[0]) {
         case 0xFA:

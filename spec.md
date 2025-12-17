@@ -81,6 +81,7 @@ Legend:
 | AQTitle helpers | `--enable-rust-aqtitle` | `libavformat/aqtitledec.c` | `make fate-sub-aqtitle` + `make fate` | `tools/target_aqtitle_marker_fuzzer.c` | planned | done (subset) |
 | SAMI helpers | `--enable-rust-sami` | `libavformat/samidec.c` | `make fate-sub-sami*` + `make fate` | `tools/target_sami_start_fuzzer.c` | planned | done (subset) |
 | ASS helpers | `--enable-rust-ass` | `libavformat/assdec.c` | `make fate-sub-ass-to-ass-transcode` + `make fate` | `tools/target_ass_dialogue_fuzzer.c` | planned | done (subset) |
+| MCC helpers | `--enable-rust-mcc` | `libavformat/mccenc.c` | `make fate-sub-mcc*` + `make fate` | `tools/target_mcc_hex_fuzzer.c` | planned | done (subset) |
 
 ### Demuxers / Muxers
 

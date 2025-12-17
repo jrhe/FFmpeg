@@ -200,3 +200,10 @@ Fuzz harness (Dialogue line parsing):
 
 `./configure --disable-programs --enable-rust-ass`
 `make tools/target_ass_dialogue_fuzzer.o`
+
+## MCC helpers
+
+Fuzz harness (bytes-to-hex):
+
+`./configure --disable-programs --enable-rust-mcc`
+`make tools/target_mcc_hex_fuzzer.o`
