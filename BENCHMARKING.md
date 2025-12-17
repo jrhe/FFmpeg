@@ -151,3 +151,10 @@ Fuzz harness (line parsing):
 
 `./configure --disable-programs --enable-rust-stl`
 `make tools/target_stl_line_fuzzer.o`
+
+## LRC helpers
+
+Fuzz harness (timestamp parsing):
+
+`./configure --disable-programs --enable-rust-lrc`
+`make tools/target_lrc_ts_fuzzer.o`

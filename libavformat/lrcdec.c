@@ -32,6 +32,10 @@
 #include "libavutil/bprint.h"
 #include "libavutil/dict.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_LRC)
+#include "../rust/ffmpeg-lrc/include/ffmpeg_rs_lrc.h"
+#endif
+
 typedef struct LRCContext {
     FFDemuxSubtitlesQueue q;
     int64_t ts_offset; // offset metadata item
@@ -52,6 +56,9 @@ static int64_t find_header(const char *p)
 
 static int64_t count_ts(const char *p)
 {
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_LRC)
+    return (int64_t)ffmpeg_rs_lrc_count_ts_prefix((const uint8_t *)p, strlen(p));
+#else
     int64_t offset = 0;
     int in_brackets = 0;
 
@@ -73,10 +80,14 @@ static int64_t count_ts(const char *p)
         }
     }
     return offset;
+#endif
 }
 
 static int64_t read_ts(const char *p, int64_t *start)
 {
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_LRC)
+    return (int64_t)ffmpeg_rs_lrc_read_ts((const uint8_t *)p, strlen(p), start);
+#else
     int64_t offset = 0;
     uint32_t mm;
     double ss;
@@ -100,6 +111,7 @@ static int64_t read_ts(const char *p, int64_t *start)
         offset++;
     } while(p[offset] && p[offset-1] != ']');
     return offset;
+#endif
 }
 
 static int64_t read_line(AVBPrint *buf, AVIOContext *pb)

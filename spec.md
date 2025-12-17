@@ -74,6 +74,7 @@ Legend:
 | SubViewer1 helpers | `--enable-rust-subviewer1` | `libavformat/subviewer1dec.c` | `make fate-sub-subviewer1` + `make fate` | `tools/target_subviewer_ts_fuzzer.c` | planned | done (subset) |
 | SCC helpers | `--enable-rust-scc` | `libavformat/sccdec.c` | `make fate-sub-scc*` + `make fate` | `tools/target_scc_words_fuzzer.c` | planned | done (subset) |
 | STL helpers | `--enable-rust-stl` | `libavformat/stldec.c` | `make fate-sub-stl` + `make fate` | `tools/target_stl_line_fuzzer.c` | planned | done (subset) |
+| LRC helpers | `--enable-rust-lrc` | `libavformat/lrcdec.c` | `make fate-sub-lrc*` + `make fate` | `tools/target_lrc_ts_fuzzer.c` | planned | done (subset) |
 
 ### Demuxers / Muxers
 

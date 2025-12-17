@@ -25,6 +25,7 @@ rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsdemux.h
 rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsparser.h
 rust/ffmpeg-hlswriter/include/ffmpeg_rs_hlswriter.h
 rust/ffmpeg-jacosub/include/ffmpeg_rs_jacosub.h
+rust/ffmpeg-lrc/include/ffmpeg_rs_lrc.h
 rust/ffmpeg-microdvd/include/ffmpeg_rs_microdvd.h
 rust/ffmpeg-mpl2/include/ffmpeg_rs_mpl2.h
 rust/ffmpeg-scc/include/ffmpeg_rs_scc.h
@@ -43,6 +44,7 @@ tools/bench_webvtt.c
 tools/target_hlsdemux_events_fuzzer.c
 tools/target_hlsproto_fuzzer.c
 tools/target_jacosub_ts_fuzzer.c
+tools/target_lrc_ts_fuzzer.c
 tools/target_microdvd_line_fuzzer.c
 tools/target_mpl2_line_fuzzer.c
 tools/target_scc_words_fuzzer.c
@@ -66,6 +68,7 @@ rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsdemux.h
 rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsparser.h
 rust/ffmpeg-hlswriter/include/ffmpeg_rs_hlswriter.h
 rust/ffmpeg-jacosub/include/ffmpeg_rs_jacosub.h
+rust/ffmpeg-lrc/include/ffmpeg_rs_lrc.h
 rust/ffmpeg-microdvd/include/ffmpeg_rs_microdvd.h
 rust/ffmpeg-mpl2/include/ffmpeg_rs_mpl2.h
 rust/ffmpeg-scc/include/ffmpeg_rs_scc.h
