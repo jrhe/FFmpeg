@@ -137,6 +137,7 @@ Rust options:
   --enable-rust-sami       enable Rust SAMI Start attribute helper (subset) [no]
   --enable-rust-ass        enable Rust ASS/SSA Dialogue helper (subset) [no]
   --enable-rust-mcc        enable Rust MCC helpers (subset) [no]
+  --enable-rust-id3v2      enable Rust ID3v2 helpers (subset) [no]
 
 Program options:
   --disable-programs       do not build command line programs
@@ -2783,6 +2784,7 @@ CMDLINE_SELECT="
     rust_sami
     rust_ass
     rust_mcc
+    rust_id3v2
 "
 
 PATHS_LIST="
@@ -7829,6 +7831,7 @@ enabled rust_aqtitle && enable rust
 enabled rust_sami && enable rust
 enabled rust_ass && enable rust
 enabled rust_mcc && enable rust
+enabled rust_id3v2 && enable rust
 
 if enabled rust_hlswriter; then
     add_cppflags -DCONFIG_RUST_HLSWRITER
@@ -7920,6 +7923,10 @@ fi
 
 if enabled rust_mcc; then
     add_cppflags -DCONFIG_RUST_MCC
+fi
+
+if enabled rust_id3v2; then
+    add_cppflags -DCONFIG_RUST_ID3V2
 fi
 
 enabled neon_clobber_test &&

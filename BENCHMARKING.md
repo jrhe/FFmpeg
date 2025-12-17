@@ -212,3 +212,10 @@ Fuzz harness (payload expand):
 
 `./configure --disable-programs --enable-rust-mcc`
 `make tools/target_mcc_payload_fuzzer.o`
+
+## ID3v2 helpers
+
+Fuzz harness (tag length parsing):
+
+`./configure --disable-programs --enable-rust-id3v2`
+`make tools/target_id3v2_taglen_fuzzer.o`

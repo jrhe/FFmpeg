@@ -26,6 +26,7 @@ rust/ffmpeg-ffi/include/ffmpeg_rs.h
 rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsdemux.h
 rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsparser.h
 rust/ffmpeg-hlswriter/include/ffmpeg_rs_hlswriter.h
+rust/ffmpeg-id3v2/include/ffmpeg_rs_id3v2.h
 rust/ffmpeg-jacosub/include/ffmpeg_rs_jacosub.h
 rust/ffmpeg-lrc/include/ffmpeg_rs_lrc.h
 rust/ffmpeg-mcc/include/ffmpeg_rs_mcc.h
@@ -52,6 +53,7 @@ tools/target_aqtitle_marker_fuzzer.c
 tools/target_ass_dialogue_fuzzer.c
 tools/target_hlsdemux_events_fuzzer.c
 tools/target_hlsproto_fuzzer.c
+tools/target_id3v2_taglen_fuzzer.c
 tools/target_jacosub_ts_fuzzer.c
 tools/target_lrc_ts_fuzzer.c
 tools/target_mcc_hex_fuzzer.c
@@ -84,6 +86,7 @@ rust/ffmpeg-ffi/include/ffmpeg_rs.h
 rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsdemux.h
 rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsparser.h
 rust/ffmpeg-hlswriter/include/ffmpeg_rs_hlswriter.h
+rust/ffmpeg-id3v2/include/ffmpeg_rs_id3v2.h
 rust/ffmpeg-jacosub/include/ffmpeg_rs_jacosub.h
 rust/ffmpeg-lrc/include/ffmpeg_rs_lrc.h
 rust/ffmpeg-mcc/include/ffmpeg_rs_mcc.h

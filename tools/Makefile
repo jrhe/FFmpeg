@@ -93,6 +93,9 @@ tools/target_mcc_hex_fuzzer.o: tools/target_mcc_hex_fuzzer.c
 tools/target_mcc_payload_fuzzer.o: tools/target_mcc_payload_fuzzer.c
 	$(COMPILE_C)
 
+tools/target_id3v2_taglen_fuzzer.o: tools/target_id3v2_taglen_fuzzer.c
+	$(COMPILE_C)
+
 tools/bench_common.o: tools/bench_common.c
 	$(COMPILE_C)
 

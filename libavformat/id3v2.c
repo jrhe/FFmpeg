@@ -43,6 +43,10 @@
 #include "id3v1.h"
 #include "id3v2.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_ID3V2)
+#include "../rust/ffmpeg-id3v2/include/ffmpeg_rs_id3v2.h"
+#endif
+
 const AVMetadataConv ff_id3v2_34_metadata_conv[] = {
     { "TALB", "album"        },
     { "TCOM", "composer"     },
@@ -158,6 +162,9 @@ int ff_id3v2_match(const uint8_t *buf, const char *magic)
 
 int ff_id3v2_tag_len(const uint8_t *buf)
 {
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_ID3V2)
+    return ffmpeg_rs_id3v2_tag_len(buf, ID3v2_HEADER_SIZE);
+#else
     int len = ((buf[6] & 0x7f) << 21) +
               ((buf[7] & 0x7f) << 14) +
               ((buf[8] & 0x7f) << 7) +
@@ -166,6 +173,7 @@ int ff_id3v2_tag_len(const uint8_t *buf)
     if (buf[5] & 0x10)
         len += ID3v2_HEADER_SIZE;
     return len;
+#endif
 }
 
 static unsigned int get_size(AVIOContext *s, int len)
