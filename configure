@@ -118,6 +118,7 @@ Rust options:
   --enable-rust-hlsparser  enable Rust HLS playlist parser (hls protocol) [no]
   --enable-rust-hlsdemux-parser enable Rust HLS demuxer playlist parser (subset) [no]
   --enable-rust-webvtt     enable Rust WebVTT parser (subset) [no]
+  --enable-rust-subrip     enable Rust SubRip/SRT parser (subset) [no]
 
 Program options:
   --disable-programs       do not build command line programs
@@ -2745,6 +2746,7 @@ CMDLINE_SELECT="
     rust_hlsparser
     rust_hlsdemux_parser
     rust_webvtt
+    rust_subrip
 "
 
 PATHS_LIST="
@@ -7772,6 +7774,7 @@ enabled rust_hlswriter && enable rust
 enabled rust_hlsparser && enable rust
 enabled rust_hlsdemux_parser && enable rust
 enabled rust_webvtt && enable rust
+enabled rust_subrip && enable rust
 
 if enabled rust_hlswriter; then
     add_cppflags -DCONFIG_RUST_HLSWRITER
@@ -7787,6 +7790,10 @@ fi
 
 if enabled rust_webvtt; then
     add_cppflags -DCONFIG_RUST_WEBVTT
+fi
+
+if enabled rust_subrip; then
+    add_cppflags -DCONFIG_RUST_SUBRIP
 fi
 
 enabled neon_clobber_test &&

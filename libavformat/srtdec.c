@@ -27,6 +27,10 @@
 #include "libavutil/bprint.h"
 #include "libavutil/intreadwrite.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_SUBRIP)
+#include "../rust/ffmpeg-subrip/include/ffmpeg_rs_subrip.h"
+#endif
+
 typedef struct {
     FFDemuxSubtitlesQueue q;
 } SRTContext;
@@ -197,6 +201,78 @@ static int srt_read_header(AVFormatContext *s)
             ei = tmp_ei;
         }
     }
+
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_SUBRIP)
+    // Optional Rust fast-path: parse the whole file and replace the queue.
+    // This is a subset parser and ignores positional metadata for now.
+    {
+        int64_t start_pos = 0;
+        uint8_t *buf = NULL;
+        size_t buf_len = 0, buf_cap = 0;
+        FFmpegRsSubripParseResult out = {0};
+        FFmpegRsSubripEvent *events = NULL;
+        size_t cap = 4096;
+
+        // Read file into memory.
+        ff_text_init_avio(s, &tr, s->pb);
+        start_pos = ff_text_pos(&tr);
+        (void)start_pos;
+        while (!ff_text_eof(&tr)) {
+            uint8_t tmp[4096];
+            int n = avio_read(s->pb, tmp, sizeof(tmp));
+            if (n < 0)
+                break;
+            if (n == 0)
+                break;
+            if (buf_len + (size_t)n + 1 > buf_cap) {
+                size_t new_cap = buf_cap ? buf_cap * 2 : 8192;
+                while (new_cap < buf_len + (size_t)n + 1)
+                    new_cap *= 2;
+                buf = av_realloc(buf, new_cap);
+                if (!buf) {
+                    res = AVERROR(ENOMEM);
+                    goto end;
+                }
+                buf_cap = new_cap;
+            }
+            memcpy(buf + buf_len, tmp, n);
+            buf_len += (size_t)n;
+        }
+        if (buf) {
+            buf[buf_len] = 0;
+            events = av_malloc_array(cap, sizeof(*events));
+            if (!events) {
+                av_free(buf);
+                res = AVERROR(ENOMEM);
+                goto end;
+            }
+            if (ffmpeg_rs_subrip_parse(buf, buf_len, &out, events, cap) == 0 && out.n_events > 0) {
+                // Replace queue content.
+                ff_subtitles_queue_clean(&srt->q);
+                for (size_t i = 0; i < out.n_events && i < cap; i++) {
+                    const FFmpegRsSubripEvent *e = &events[i];
+                    if (e->payload_offset + e->payload_len > buf_len)
+                        continue;
+                    AVPacket *sub = ff_subtitles_queue_insert(&srt->q,
+                                                             (const char *)buf + e->payload_offset,
+                                                             e->payload_len, 0);
+                    if (!sub) {
+                        res = AVERROR(ENOMEM);
+                        break;
+                    }
+                    sub->pts = e->start_ms;
+                    sub->duration = e->duration_ms;
+                }
+                ff_subtitles_queue_finalize(s, &srt->q);
+                av_free(events);
+                av_free(buf);
+                return res;
+            }
+            av_free(events);
+            av_free(buf);
+        }
+    }
+#endif
 
     /* Append the last event. Here we force the cache to be flushed, because a
      * trailing number is more likely to be genuine (for example a copyright
