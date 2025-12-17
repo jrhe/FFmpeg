@@ -63,6 +63,9 @@ tools/target_subviewer_ts_fuzzer.o: tools/target_subviewer_ts_fuzzer.c
 tools/target_scc_words_fuzzer.o: tools/target_scc_words_fuzzer.c
 	$(COMPILE_C)
 
+tools/target_stl_line_fuzzer.o: tools/target_stl_line_fuzzer.c
+	$(COMPILE_C)
+
 tools/bench_common.o: tools/bench_common.c
 	$(COMPILE_C)
 

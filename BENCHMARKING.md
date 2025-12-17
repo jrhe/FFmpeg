@@ -144,3 +144,10 @@ Fuzz harness (payload word parsing):
 
 `./configure --disable-programs --enable-rust-scc`
 `make tools/target_scc_words_fuzzer.o`
+
+## STL helpers
+
+Fuzz harness (line parsing):
+
+`./configure --disable-programs --enable-rust-stl`
+`make tools/target_stl_line_fuzzer.o`

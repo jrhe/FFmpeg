@@ -28,6 +28,7 @@ rust/ffmpeg-jacosub/include/ffmpeg_rs_jacosub.h
 rust/ffmpeg-microdvd/include/ffmpeg_rs_microdvd.h
 rust/ffmpeg-mpl2/include/ffmpeg_rs_mpl2.h
 rust/ffmpeg-scc/include/ffmpeg_rs_scc.h
+rust/ffmpeg-stl/include/ffmpeg_rs_stl.h
 rust/ffmpeg-subrip/include/ffmpeg_rs_subrip.h
 rust/ffmpeg-subviewer/include/ffmpeg_rs_subviewer.h
 rust/ffmpeg-ttml/include/ffmpeg_rs_ttml.h
@@ -45,6 +46,7 @@ tools/target_jacosub_ts_fuzzer.c
 tools/target_microdvd_line_fuzzer.c
 tools/target_mpl2_line_fuzzer.c
 tools/target_scc_words_fuzzer.c
+tools/target_stl_line_fuzzer.c
 tools/target_subrip_fuzzer.c
 tools/target_subviewer_ts_fuzzer.c
 tools/target_ttml_extradata_fuzzer.c
@@ -67,6 +69,7 @@ rust/ffmpeg-jacosub/include/ffmpeg_rs_jacosub.h
 rust/ffmpeg-microdvd/include/ffmpeg_rs_microdvd.h
 rust/ffmpeg-mpl2/include/ffmpeg_rs_mpl2.h
 rust/ffmpeg-scc/include/ffmpeg_rs_scc.h
+rust/ffmpeg-stl/include/ffmpeg_rs_stl.h
 rust/ffmpeg-subrip/include/ffmpeg_rs_subrip.h
 rust/ffmpeg-subviewer/include/ffmpeg_rs_subviewer.h
 rust/ffmpeg-ttml/include/ffmpeg_rs_ttml.h

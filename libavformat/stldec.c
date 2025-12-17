@@ -31,6 +31,10 @@
 #include "libavutil/intreadwrite.h"
 #include "libavutil/avstring.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_STL)
+#include "../rust/ffmpeg-stl/include/ffmpeg_rs_stl.h"
+#endif
+
 typedef struct {
     FFDemuxSubtitlesQueue q;
 } STLContext;
@@ -57,6 +61,20 @@ static int64_t get_pts(char **buf, int *duration)
     int hh1, mm1, ss1, ms1;
     int hh2, mm2, ss2, ms2;
     int len = 0;
+
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_STL)
+    {
+        size_t payload_off = 0;
+        int64_t start_cs = 0;
+        int dur_cs = 0;
+        if (ffmpeg_rs_stl_parse_line((const uint8_t *)*buf, strlen(*buf),
+                                     &payload_off, &start_cs, &dur_cs) == 0) {
+            *duration = dur_cs;
+            *buf += payload_off;
+            return start_cs;
+        }
+    }
+#endif
 
     if (sscanf(*buf, "%2d:%2d:%2d:%2d , %2d:%2d:%2d:%2d , %n",
                 &hh1, &mm1, &ss1, &ms1,
