@@ -116,3 +116,10 @@ Fuzz harness (line parser):
 
 `./configure --disable-programs --enable-rust-mpl2`
 `make tools/target_mpl2_line_fuzzer.o`
+
+## VPlayer parser
+
+Fuzz harness (line parser):
+
+`./configure --disable-programs --enable-rust-vplayer`
+`make tools/target_vplayer_line_fuzzer.o`

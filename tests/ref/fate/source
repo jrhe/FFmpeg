@@ -28,6 +28,7 @@ rust/ffmpeg-microdvd/include/ffmpeg_rs_microdvd.h
 rust/ffmpeg-mpl2/include/ffmpeg_rs_mpl2.h
 rust/ffmpeg-subrip/include/ffmpeg_rs_subrip.h
 rust/ffmpeg-ttml/include/ffmpeg_rs_ttml.h
+rust/ffmpeg-vplayer/include/ffmpeg_rs_vplayer.h
 rust/ffmpeg-webvtt/include/ffmpeg_rs_webvtt.h
 tools/bench_common.c
 tools/bench_common.h
@@ -41,6 +42,7 @@ tools/target_microdvd_line_fuzzer.c
 tools/target_mpl2_line_fuzzer.c
 tools/target_subrip_fuzzer.c
 tools/target_ttml_extradata_fuzzer.c
+tools/target_vplayer_line_fuzzer.c
 tools/target_webvtt_fuzzer.c
 tools/uncoded_frame.c
 tools/yuvcmp.c
@@ -59,6 +61,7 @@ rust/ffmpeg-microdvd/include/ffmpeg_rs_microdvd.h
 rust/ffmpeg-mpl2/include/ffmpeg_rs_mpl2.h
 rust/ffmpeg-subrip/include/ffmpeg_rs_subrip.h
 rust/ffmpeg-ttml/include/ffmpeg_rs_ttml.h
+rust/ffmpeg-vplayer/include/ffmpeg_rs_vplayer.h
 rust/ffmpeg-webvtt/include/ffmpeg_rs_webvtt.h
 tools/bench_common.h
 tools/decode_simple.h

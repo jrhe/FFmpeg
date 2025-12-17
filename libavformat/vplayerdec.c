@@ -28,6 +28,10 @@
 #include "internal.h"
 #include "subtitles.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_VPLAYER)
+#include "../rust/ffmpeg-vplayer/include/ffmpeg_rs_vplayer.h"
+#endif
+
 typedef struct {
     FFDemuxSubtitlesQueue q;
 } VPlayerContext;
@@ -79,6 +83,22 @@ static int vplayer_read_header(AVFormatContext *s)
 
         line[strcspn(line, "\r\n")] = 0;
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_VPLAYER)
+        {
+            FFmpegRsVplayerEvent ev;
+            if (ffmpeg_rs_vplayer_parse_line((const uint8_t *)p, strlen(p), &ev) == 0) {
+                AVPacket *sub;
+                sub = ff_subtitles_queue_insert(&vplayer->q,
+                                                (const char *)(p + ev.payload_offset),
+                                                ev.payload_len, 0);
+                if (!sub)
+                    return AVERROR(ENOMEM);
+                sub->pos = pos;
+                sub->pts = ev.start_cs;
+                sub->duration = -1;
+            }
+        }
+#else
         pts_start = read_ts(&p);
         if (pts_start != AV_NOPTS_VALUE) {
             AVPacket *sub;
@@ -90,6 +110,7 @@ static int vplayer_read_header(AVFormatContext *s)
             sub->pts = pts_start;
             sub->duration = -1;
         }
+#endif
     }
 
     ff_subtitles_queue_finalize(s, &vplayer->q);

@@ -51,6 +51,9 @@ tools/target_ttml_extradata_fuzzer.o: tools/target_ttml_extradata_fuzzer.c
 tools/target_mpl2_line_fuzzer.o: tools/target_mpl2_line_fuzzer.c
 	$(COMPILE_C)
 
+tools/target_vplayer_line_fuzzer.o: tools/target_vplayer_line_fuzzer.c
+	$(COMPILE_C)
+
 tools/bench_common.o: tools/bench_common.c
 	$(COMPILE_C)
 
