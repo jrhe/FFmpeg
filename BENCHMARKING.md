@@ -20,6 +20,21 @@ Run (provide any `.m3u8` file):
 
 Output includes total wall and CPU seconds for the requested iteration count.
 
+This benchmark prints both a small C baseline (`hlsparser(c)`) and the Rust path (`hlsparser(rust)`).
+
+### Startup latency
+
+This measures end-to-end `ffprobe` startup latency while opening an HLS playlist using the `hls` protocol handler.
+
+Build `ffprobe` (once):
+
+`./configure --enable-ffprobe --disable-ffmpeg --disable-ffplay`
+`make -j ffprobe`
+
+Then run:
+
+`./tools/bench_startup_latency_hlsproto.sh /path/to/playlist.m3u8 50`
+
 ### Fuzz throughput
 
 Build the fuzzer object (Rust enabled):
