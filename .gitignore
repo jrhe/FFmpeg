@@ -4,3 +4,6 @@
 **/*.rmeta
 **/*.dSYM/
 
+# Build outputs
+**/*.o
+**/*.d
