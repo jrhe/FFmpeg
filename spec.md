@@ -57,7 +57,7 @@ Legend:
 | HLS playlist writer (header) | `--enable-rust-hlswriter` | `libavformat/hlsplaylist.c` | `make fate-avstring` + `cargo test` | (n/a) | `tools/bench_hlswriter` (A/B) | done |
 | HLS playlist parser (hlsproto) | `--enable-rust-hlsparser` | `libavformat/hlsproto.c` | `make fate` + `cargo test` | `tools/target_hlsproto_fuzzer.c` | `tools/bench_hlsparser` (A/B), `tools/bench_startup_latency_hlsproto*.sh` | done |
 | HLS playlist parser (HLS demuxer) | `--enable-rust-hlsdemux-parser` | `libavformat/hls.c` | targeted `fate-hls*` + `make fate` | planned | planned | planned |
-| DASH MPD parser | `--enable-rust-dash-mpd` | `libavformat/dash*` | targeted `fate-webm-dash-manifest*` + `make fate` | planned | planned | planned |
+| DASH MPD parser | `--enable-rust-dash-mpd` | `libavformat/dash*` | targeted `fate-webm-dash-manifest*` + `make fate` | planned | planned | deferred (keep C parser for now) |
 
 ### Sidecar / Metadata
 
