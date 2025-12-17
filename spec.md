@@ -38,6 +38,54 @@ Rust code is compiled as one or more `staticlib` crates and linked into FFmpeg.
 
 ## Prioritized Conversion Backlog
 
+## Component Tracker
+
+This section tracks each Rust-backed component (“Rust island”) with its flag, wiring point, tests, fuzz target, and benchmarks.
+
+Legend:
+- **Flag**: configure flag that enables the Rust path.
+- **Wiring**: the C entrypoint(s)/file(s) that call into Rust.
+- **Tests**: minimum tests to run before landing changes.
+- **Fuzz**: fuzzer target file(s) (throughput measurement is tracked separately in `decisions.md`).
+- **Bench**: A/B microbench + startup-latency script(s) where relevant.
+- **Status**: `done`, `in-progress`, or `planned`.
+
+### Protocol / Manifest
+
+| Component | Flag | Wiring | Tests | Fuzz | Bench | Status |
+|---|---|---|---|---|---|---|
+| HLS playlist writer (header) | `--enable-rust-hlswriter` | `libavformat/hlsplaylist.c` | `make fate-avstring` + `cargo test` | (n/a) | `tools/bench_hlswriter` (A/B) | done |
+| HLS playlist parser (hlsproto) | `--enable-rust-hlsparser` | `libavformat/hlsproto.c` | `make fate` + `cargo test` | `tools/target_hlsproto_fuzzer.c` | `tools/bench_hlsparser` (A/B), `tools/bench_startup_latency_hlsproto*.sh` | done |
+| HLS playlist parser (HLS demuxer) | `--enable-rust-hlsdemux-parser` | `libavformat/hls.c` | targeted `fate-hls*` + `make fate` | planned | planned | planned |
+| DASH MPD parser | `--enable-rust-dash-mpd` | `libavformat/dash*` | targeted `fate-webm-dash-manifest*` + `make fate` | planned | planned | planned |
+
+### Sidecar / Metadata
+
+| Component | Flag | Wiring | Tests | Fuzz | Bench | Status |
+|---|---|---|---|---|---|---|
+| WebVTT parser | `--enable-rust-webvtt` | `libavformat/webvttdec.c` (or shared helper) | targeted subtitles FATE + `make fate` | planned | microbench planned | planned |
+| SRT/SubRip parser | `--enable-rust-subrip` | `libavformat/srtdec.c` | targeted subtitles FATE + `make fate` | planned | microbench planned | planned |
+| TTML parser | `--enable-rust-ttml` | `libavformat/ttml*` | targeted subtitles FATE + `make fate` | planned | microbench planned | planned |
+
+### Demuxers / Muxers
+
+| Component | Flag | Wiring | Tests | Fuzz | Bench | Status |
+|---|---|---|---|---|---|---|
+| Candidate demuxer #1 (TBD) | `--enable-rust-demux-<fmt>` | `libavformat/<fmt>.c` | targeted `fate-lavf-*` + `make fate` | planned | startup latency + A/B parse microbench | planned |
+| Candidate demuxer #2 (TBD) | `--enable-rust-demux-<fmt>` | `libavformat/<fmt>.c` | targeted `fate-lavf-*` + `make fate` | planned | startup latency + A/B parse microbench | planned |
+
+### Protocol Handlers
+
+| Component | Flag | Wiring | Tests | Fuzz | Bench | Status |
+|---|---|---|---|---|---|---|
+| Candidate protocol #1 (TBD) | `--enable-rust-proto-<name>` | `libavformat/<proto>.c` | targeted protocol tests + `make fate` | planned | startup latency + A/B parse microbench | planned |
+
+### Utilities
+
+| Component | Flag | Wiring | Tests | Fuzz | Bench | Status |
+|---|---|---|---|---|---|---|
+| Shared bounded string/kv parser helpers | `--enable-rust-util-parse` | shared helper call sites | unit tests + `make fate` | planned | microbench planned | planned |
+
 ### Tier 0: Tooling and scaffolding (do first)
 
 1. **Build + configure integration**
