@@ -30,6 +30,10 @@
 #include "internal.h"
 #include "subtitles.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_PJS)
+#include "../rust/ffmpeg-pjs/include/ffmpeg_rs_pjs.h"
+#endif
+
 typedef struct {
     FFDemuxSubtitlesQueue q;
 } PJSContext;
@@ -52,6 +56,21 @@ static int pjs_probe(const AVProbeData *p)
 static int64_t read_ts(char **line, int *duration)
 {
     int64_t start, end;
+
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_PJS)
+    {
+        size_t payload_off = 0;
+        int dur = 0;
+        if (ffmpeg_rs_pjs_parse_line((const uint8_t *)*line, strlen(*line),
+                                     &payload_off, &start, &dur) == 0) {
+            *duration = dur;
+            *line += payload_off;
+            *line += strcspn(*line, "\"");
+            *line += !!**line;
+            return start;
+        }
+    }
+#endif
 
     if (sscanf(*line, "%"SCNd64",%"SCNd64, &start, &end) == 2) {
         *line += strcspn(*line, "\"");

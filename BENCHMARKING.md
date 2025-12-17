@@ -165,3 +165,10 @@ Fuzz harness (timing line parsing):
 
 `./configure --disable-programs --enable-rust-mpsub`
 `make tools/target_mpsub_line_fuzzer.o`
+
+## PJS helpers
+
+Fuzz harness (line parsing):
+
+`./configure --disable-programs --enable-rust-pjs`
+`make tools/target_pjs_line_fuzzer.o`

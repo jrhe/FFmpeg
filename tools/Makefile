@@ -72,6 +72,9 @@ tools/target_lrc_ts_fuzzer.o: tools/target_lrc_ts_fuzzer.c
 tools/target_mpsub_line_fuzzer.o: tools/target_mpsub_line_fuzzer.c
 	$(COMPILE_C)
 
+tools/target_pjs_line_fuzzer.o: tools/target_pjs_line_fuzzer.c
+	$(COMPILE_C)
+
 tools/bench_common.o: tools/bench_common.c
 	$(COMPILE_C)
 
