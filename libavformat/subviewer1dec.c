@@ -28,6 +28,10 @@
 #include "internal.h"
 #include "subtitles.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_SUBVIEWER1)
+#include "../rust/ffmpeg-subviewer/include/ffmpeg_rs_subviewer.h"
+#endif
+
 typedef struct {
     FFDemuxSubtitlesQueue q;
 } SubViewer1Context;
@@ -67,7 +71,13 @@ static int subviewer1_read_header(AVFormatContext *s)
             sscanf(line, "%d", &delay);
         }
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_SUBVIEWER1)
+        if (ffmpeg_rs_subviewer1_parse_time((const uint8_t *)line, strlen(line),
+                                            &hh, &mm, &ss) == 1 ||
+            sscanf(line, "[%d:%d:%d]", &hh, &mm, &ss) == 3) {
+#else
         if (sscanf(line, "[%d:%d:%d]", &hh, &mm, &ss) == 3) {
+#endif
             const int64_t pos = avio_tell(s->pb);
             int64_t pts_start = hh*3600LL + mm*60LL + ss + delay;
 

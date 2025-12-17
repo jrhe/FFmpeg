@@ -70,6 +70,8 @@ Legend:
 | MPL2 parser | `--enable-rust-mpl2` | `libavformat/mpl2dec.c` | `make fate-sub-mpl2` + `make fate` | `tools/target_mpl2_line_fuzzer.c` | planned | done (subset) |
 | VPlayer parser | `--enable-rust-vplayer` | `libavformat/vplayerdec.c` | `make fate-sub-vplayer` + `make fate` | `tools/target_vplayer_line_fuzzer.c` | planned | done (subset) |
 | JACOsub helpers | `--enable-rust-jacosub` | `libavformat/jacosubdec.c` | `make fate-sub-jacosub*` + `make fate` | `tools/target_jacosub_ts_fuzzer.c` | planned | done (subset) |
+| SubViewer helpers | `--enable-rust-subviewer` | `libavformat/subviewerdec.c` | `make fate-sub-subviewer` + `make fate` | `tools/target_subviewer_ts_fuzzer.c` | planned | done (subset) |
+| SubViewer1 helpers | `--enable-rust-subviewer1` | `libavformat/subviewer1dec.c` | `make fate-sub-subviewer1` + `make fate` | `tools/target_subviewer_ts_fuzzer.c` | planned | done (subset) |
 
 ### Demuxers / Muxers
 

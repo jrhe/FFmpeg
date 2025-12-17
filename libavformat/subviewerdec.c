@@ -33,6 +33,10 @@
 #include "libavutil/bprint.h"
 #include "libavutil/intreadwrite.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_SUBVIEWER)
+#include "../rust/ffmpeg-subviewer/include/ffmpeg_rs_subviewer.h"
+#endif
+
 typedef struct {
     FFDemuxSubtitlesQueue q;
 } SubViewerContext;
@@ -150,10 +154,30 @@ static int subviewer_read_header(AVFormatContext *s)
                     av_dict_set(&s->metadata, key, value, 0);
                 }
             }
-        } else if (read_ts(line, &pts_start, &duration) >= 0) {
-            new_event = 1;
-            pos = avio_tell(s->pb);
-        } else if (*line) {
+        } else {
+            int got_ts = 0;
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_SUBVIEWER)
+            int64_t rust_start = 0;
+            int rust_duration = 0;
+            if (ffmpeg_rs_subviewer_read_ts((const uint8_t *)line, strlen(line),
+                                            &rust_start, &rust_duration) == 0) {
+                pts_start = rust_start;
+                duration = rust_duration;
+                got_ts = 1;
+            }
+#endif
+            if (!got_ts && read_ts(line, &pts_start, &duration) >= 0)
+                got_ts = 1;
+
+            if (got_ts) {
+                new_event = 1;
+                pos = avio_tell(s->pb);
+                continue;
+            }
+
+            if (!*line)
+                continue;
+
             if (pts_start == AV_NOPTS_VALUE) {
                 res = AVERROR_INVALIDDATA;
                 goto end;

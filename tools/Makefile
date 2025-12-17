@@ -57,6 +57,9 @@ tools/target_vplayer_line_fuzzer.o: tools/target_vplayer_line_fuzzer.c
 tools/target_jacosub_ts_fuzzer.o: tools/target_jacosub_ts_fuzzer.c
 	$(COMPILE_C)
 
+tools/target_subviewer_ts_fuzzer.o: tools/target_subviewer_ts_fuzzer.c
+	$(COMPILE_C)
+
 tools/bench_common.o: tools/bench_common.c
 	$(COMPILE_C)
 

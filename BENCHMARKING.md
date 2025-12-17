@@ -130,3 +130,10 @@ Fuzz harness (timestamp/shift parsing):
 
 `./configure --disable-programs --enable-rust-jacosub`
 `make tools/target_jacosub_ts_fuzzer.o`
+
+## SubViewer / SubViewer1 helpers
+
+Fuzz harness (timestamp parsing):
+
+`./configure --disable-programs --enable-rust-subviewer --enable-rust-subviewer1`
+`make tools/target_subviewer_ts_fuzzer.o`
