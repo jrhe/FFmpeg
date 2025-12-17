@@ -60,7 +60,14 @@ Rust code is compiled as one or more `staticlib` crates and linked into FFmpeg.
    - Plan:
      - Define ABI: `parse_manifest(input_ptr,len, out_ptr,out_len, ...)` producing a structured, bounded output (e.g. a compact table or JSON-like token stream).
      - In C, keep existing demuxer logic but swap the parsing front-end behind a feature flag.
-     - Add fuzzers and regression tests for tricky edge cases.
+    - Add fuzzers and regression tests for tricky edge cases.
+
+### Initial pilot (this repo)
+
+- **Pilot 1: HLS playlist emission (writer-side) helper**
+  - Scope: replace `ff_hls_write_*` string formatting helpers with a Rust implementation behind a build flag.
+  - Rationale: low coupling (operates on primitives/strings), easy to test, establishes C↔Rust patterns.
+  - Exit criteria: byte-for-byte identical output for representative inputs and passing FATE tests.
 
 5. **Sidecar metadata formats**
    - e.g. WebVTT, SRT, TTML, ID3 tag parsing utilities.
@@ -149,4 +156,3 @@ For each component to migrate:
 
 3. **M3: Orchestration pilot (optional)**
    - One clearly bounded scheduling/queueing subsystem behind a flag.
-

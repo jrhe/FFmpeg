@@ -29,10 +29,26 @@
 #include "avformat.h"
 #include "hlsplaylist.h"
 
+#ifdef HAVE_FFMPEG_RUST
+#include "../rust/ffmpeg-hlswriter/include/ffmpeg_rs_hlswriter.h"
+#endif
+
 void ff_hls_write_playlist_version(AVIOContext *out, int version)
 {
     if (!out)
         return;
+
+#ifdef HAVE_FFMPEG_RUST
+    {
+        char buf[64];
+        ptrdiff_t n = ffmpeg_rs_hls_write_playlist_version(buf, sizeof(buf), version);
+        if (n > 0) {
+            avio_write(out, (const unsigned char *)buf, (int)n);
+            return;
+        }
+    }
+#endif
+
     avio_printf(out, "#EXTM3U\n");
     avio_printf(out, "#EXT-X-VERSION:%d\n", version);
 }
