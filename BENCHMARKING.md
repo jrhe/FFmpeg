@@ -207,3 +207,8 @@ Fuzz harness (bytes-to-hex):
 
 `./configure --disable-programs --enable-rust-mcc`
 `make tools/target_mcc_hex_fuzzer.o`
+
+Fuzz harness (payload expand):
+
+`./configure --disable-programs --enable-rust-mcc`
+`make tools/target_mcc_payload_fuzzer.o`

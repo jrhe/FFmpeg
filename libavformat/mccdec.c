@@ -40,6 +40,10 @@
 #include <stdbool.h>
 #include <string.h>
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_MCC)
+#include "../rust/ffmpeg-mcc/include/ffmpeg_rs_mcc.h"
+#endif
+
 typedef struct MCCContext {
     const AVClass *class;
     int                   eia608_extract;
@@ -307,6 +311,20 @@ static int mcc_read_header(AVFormatContext *s)
         PutByteContext pb;
         bytestream2_init_writer(&pb, coded_anc.payload, AV_SMPTE_436M_CODED_ANC_PAYLOAD_CAPACITY);
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_MCC)
+        {
+            FFmpegRsMccExpandPayloadResult r;
+            if (ffmpeg_rs_mcc_expand_payload((const uint8_t *)line_left, strlen(line_left),
+                                             &r, coded_anc.payload, sizeof(coded_anc.payload)) == 0 &&
+                !r.truncated) {
+                if (r.n_bytes_written == 0)
+                    continue;
+                bytestream2_seek_p(&pb, r.n_bytes_written, SEEK_SET);
+                goto payload_done;
+            }
+        }
+#endif
+
         while (*line_left) {
             uint8_t v = convert(*line_left++);
 
@@ -324,6 +342,8 @@ static int mcc_read_header(AVFormatContext *s)
         }
         if (pb.eof)
             continue;
+
+payload_done:
         // remove trailing ANC checksum byte (not to be confused with the CDP checksum byte),
         // it's not included in 8-bit sample encodings. see section 6.2 (page 14) of:
         // https://pub.smpte.org/latest/st436/s436m-2006.pdf
