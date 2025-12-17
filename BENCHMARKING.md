@@ -109,3 +109,10 @@ Fuzz harness (extradata parser):
 
 `./configure --disable-programs --enable-rust-ttml`
 `make tools/target_ttml_extradata_fuzzer.o`
+
+## MPL2 parser
+
+Fuzz harness (line parser):
+
+`./configure --disable-programs --enable-rust-mpl2`
+`make tools/target_mpl2_line_fuzzer.o`

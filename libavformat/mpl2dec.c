@@ -30,6 +30,10 @@
 #include "internal.h"
 #include "subtitles.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_MPL2)
+#include "../rust/ffmpeg-mpl2/include/ffmpeg_rs_mpl2.h"
+#endif
+
 typedef struct {
     FFDemuxSubtitlesQueue q;
 } MPL2Context;
@@ -107,6 +111,22 @@ static int mpl2_read_header(AVFormatContext *s)
 
         line[strcspn(line, "\r\n")] = 0;
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_MPL2)
+        {
+            FFmpegRsMpl2Event ev;
+            if (ffmpeg_rs_mpl2_parse_line((const uint8_t *)p, strlen(p), &ev) == 0) {
+                AVPacket *sub;
+                sub = ff_subtitles_queue_insert(&mpl2->q,
+                                                (const char *)(p + ev.payload_offset),
+                                                ev.payload_len, 0);
+                if (!sub)
+                    return AVERROR(ENOMEM);
+                sub->pos = pos;
+                sub->pts = ev.start_ticks;
+                sub->duration = ev.duration_ticks;
+            }
+        }
+#else
         if (!read_ts(&p, &pts_start, &duration)) {
             AVPacket *sub;
 
@@ -117,6 +137,7 @@ static int mpl2_read_header(AVFormatContext *s)
             sub->pts = pts_start;
             sub->duration = duration;
         }
+#endif
     }
 
     ff_subtitles_queue_finalize(s, &mpl2->q);
