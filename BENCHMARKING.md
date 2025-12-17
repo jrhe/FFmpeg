@@ -179,3 +179,10 @@ Fuzz harness (timestamp parsing):
 
 `./configure --disable-programs --enable-rust-realtext`
 `make tools/target_realtext_ts_fuzzer.o`
+
+## AQTitle helpers
+
+Fuzz harness (marker parsing):
+
+`./configure --disable-programs --enable-rust-aqtitle`
+`make tools/target_aqtitle_marker_fuzzer.o`

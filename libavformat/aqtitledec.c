@@ -32,6 +32,10 @@
 #include "subtitles.h"
 #include "libavutil/opt.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_AQTITLE)
+#include "../rust/ffmpeg-aqtitle/include/ffmpeg_rs_aqtitle.h"
+#endif
+
 typedef struct {
     const AVClass *class;
     FFDemuxSubtitlesQueue q;
@@ -71,7 +75,12 @@ static int aqt_read_header(AVFormatContext *s)
 
         line[strcspn(line, "\r\n")] = 0;
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_AQTITLE)
+        if (ffmpeg_rs_aqtitle_parse_marker((const uint8_t *)line, strlen(line), &frame) == 0 ||
+            sscanf(line, "-->> %"SCNd64, &frame) == 1) {
+#else
         if (sscanf(line, "-->> %"SCNd64, &frame) == 1) {
+#endif
             new_event = 1;
             pos = avio_tell(s->pb);
             if (sub) {

@@ -20,6 +20,7 @@ libavutil/ffmpeg_rs.h
 libswresample/log2_tab.c
 libswscale/log2_tab.c
 libswscale/riscv/cpu_common.c
+rust/ffmpeg-aqtitle/include/ffmpeg_rs_aqtitle.h
 rust/ffmpeg-ffi/include/ffmpeg_rs.h
 rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsdemux.h
 rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsparser.h
@@ -44,6 +45,7 @@ tools/bench_hlsparser.c
 tools/bench_hlswriter.c
 tools/bench_subrip.c
 tools/bench_webvtt.c
+tools/target_aqtitle_marker_fuzzer.c
 tools/target_hlsdemux_events_fuzzer.c
 tools/target_hlsproto_fuzzer.c
 tools/target_jacosub_ts_fuzzer.c
@@ -69,6 +71,7 @@ compat/float/limits.h
 compat/stdbit/stdbit.h
 libavcodec/bitstream_template.h
 libavutil/ffmpeg_rs.h
+rust/ffmpeg-aqtitle/include/ffmpeg_rs_aqtitle.h
 rust/ffmpeg-ffi/include/ffmpeg_rs.h
 rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsdemux.h
 rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsparser.h

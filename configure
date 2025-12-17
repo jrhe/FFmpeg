@@ -133,6 +133,7 @@ Rust options:
   --enable-rust-mpsub      enable Rust MPSub timing helper (subset) [no]
   --enable-rust-pjs        enable Rust PJS line parser helper (subset) [no]
   --enable-rust-realtext   enable Rust RealText timestamp helper (subset) [no]
+  --enable-rust-aqtitle    enable Rust AQTitle marker helper (subset) [no]
 
 Program options:
   --disable-programs       do not build command line programs
@@ -2775,6 +2776,7 @@ CMDLINE_SELECT="
     rust_mpsub
     rust_pjs
     rust_realtext
+    rust_aqtitle
 "
 
 PATHS_LIST="
@@ -7817,6 +7819,7 @@ enabled rust_lrc && enable rust
 enabled rust_mpsub && enable rust
 enabled rust_pjs && enable rust
 enabled rust_realtext && enable rust
+enabled rust_aqtitle && enable rust
 
 if enabled rust_hlswriter; then
     add_cppflags -DCONFIG_RUST_HLSWRITER
@@ -7892,6 +7895,10 @@ fi
 
 if enabled rust_realtext; then
     add_cppflags -DCONFIG_RUST_REALTEXT
+fi
+
+if enabled rust_aqtitle; then
+    add_cppflags -DCONFIG_RUST_AQTITLE
 fi
 
 enabled neon_clobber_test &&
