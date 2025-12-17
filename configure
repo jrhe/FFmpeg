@@ -117,6 +117,7 @@ Rust options:
   --enable-rust-hlswriter  enable Rust HLS playlist writer [no]
   --enable-rust-hlsparser  enable Rust HLS playlist parser (hls protocol) [no]
   --enable-rust-hlsdemux-parser enable Rust HLS demuxer playlist parser (subset) [no]
+  --enable-rust-hlsdemux-apply enable Rust HLS demuxer playlist apply layer (experimental) [no]
   --enable-rust-webvtt     enable Rust WebVTT parser (subset) [no]
   --enable-rust-subrip     enable Rust SubRip/SRT parser (subset) [no]
 
@@ -2745,6 +2746,7 @@ CMDLINE_SELECT="
     rust_hlswriter
     rust_hlsparser
     rust_hlsdemux_parser
+    rust_hlsdemux_apply
     rust_webvtt
     rust_subrip
 "
@@ -7773,6 +7775,7 @@ fi
 enabled rust_hlswriter && enable rust
 enabled rust_hlsparser && enable rust
 enabled rust_hlsdemux_parser && enable rust
+enabled rust_hlsdemux_apply && enable rust
 enabled rust_webvtt && enable rust
 enabled rust_subrip && enable rust
 
@@ -7786,6 +7789,10 @@ fi
 
 if enabled rust_hlsdemux_parser; then
     add_cppflags -DCONFIG_RUST_HLSDEMUX_PARSER
+fi
+
+if enabled rust_hlsdemux_apply; then
+    add_cppflags -DCONFIG_RUST_HLSDEMUX_APPLY
 fi
 
 if enabled rust_webvtt; then

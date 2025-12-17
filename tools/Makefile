@@ -33,6 +33,9 @@ tools/target_swr_fuzzer.o: tools/target_swr_fuzzer.c
 tools/target_hlsproto_fuzzer.o: tools/target_hlsproto_fuzzer.c
 	$(COMPILE_C)
 
+tools/target_hlsdemux_events_fuzzer.o: tools/target_hlsdemux_events_fuzzer.c
+	$(COMPILE_C)
+
 tools/target_webvtt_fuzzer.o: tools/target_webvtt_fuzzer.c
 	$(COMPILE_C)
 

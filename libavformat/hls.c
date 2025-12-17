@@ -50,6 +50,7 @@
 
 #if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_HLSDEMUX_PARSER)
 #include "../rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsparser.h"
+#include "../rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsdemux.h"
 #endif
 
 #define INITIAL_BUFFER_SIZE 32768
@@ -808,10 +809,10 @@ static int parse_playlist(HLSContext *c, const char *url,
     int64_t prev_start_seq_no = -1;
 
 #if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_HLSDEMUX_PARSER)
-    // Subset Rust parser path: only supports core playlist structure (segments,
-    // variants, target duration, media sequence, endlist). If playlist contains
-    // tags we don't yet support here (encryption, maps, renditions, etc.), we
-    // fall back to the full C parser below.
+    // Staged Rust parser path:
+    // - Rust tokenizes the playlist into a flat event stream.
+    // - This subset implementation only applies the most basic events; any
+    //   unknown tags fall back to the legacy C line parser below.
     int rust_fallback = 0;
 #endif
 
@@ -902,92 +903,179 @@ static int parse_playlist(HLSContext *c, const char *url,
             memcpy(full + hdr_len, buf, buf_len);
             full[hdr_len + buf_len] = 0;
 
-            // Quick scan for unsupported tags in this subset path.
-            if (memmem(full, hdr_len + buf_len, "#EXT-X-KEY:", 11) ||
-                memmem(full, hdr_len + buf_len, "#EXT-X-MAP:", 11) ||
-                memmem(full, hdr_len + buf_len, "#EXT-X-MEDIA:", 12) ||
-                memmem(full, hdr_len + buf_len, "#EXT-X-PROGRAM-DATE-TIME:", 25) ||
-                memmem(full, hdr_len + buf_len, "#EXT-X-BYTERANGE:", 17) ||
-                memmem(full, hdr_len + buf_len, "#EXT-X-PLAYLIST-TYPE:", 22)) {
-                rust_fallback = 1;
-            }
-
             if (!rust_fallback) {
-                FFmpegRsHlsPlaylist rpl;
-                size_t seg_cap = 4096;
-                size_t var_cap = 256;
-                FFmpegRsHlsSegment *segs = av_malloc_array(seg_cap, sizeof(*segs));
-                FFmpegRsHlsVariant *vars = av_malloc_array(var_cap, sizeof(*vars));
-                if (!segs || !vars) {
-                    av_free(segs);
-                    av_free(vars);
-                    av_free(full);
-                    av_free(buf);
-                    ret = AVERROR(ENOMEM);
-                    goto fail;
-                }
-                if (ffmpeg_rs_hls_parse(full, hdr_len + buf_len, &rpl, segs, seg_cap, vars, var_cap) == 0) {
-                    if ((ret = ensure_playlist(c, &pls, url)) < 0) {
-                        av_free(segs);
-                        av_free(vars);
+                FFmpegRsHlsDemuxParseEventsResult r;
+                FFmpegRsHlsDemuxEvent *evs = NULL;
+                size_t ev_cap = 0;
+
+                if (ffmpeg_rs_hls_demux_parse_events(full, hdr_len + buf_len, &r, NULL, 0) != 0) {
+                    rust_fallback = 1;
+                } else if (r.n_events_total > 16384) {
+                    rust_fallback = 1;
+                } else {
+                    ev_cap = r.n_events_total;
+                    evs = av_malloc_array(ev_cap, sizeof(*evs));
+                    if (!evs) {
                         av_free(full);
                         av_free(buf);
+                        ret = AVERROR(ENOMEM);
                         goto fail;
                     }
-                    pls->target_duration = rpl.target_duration_us;
-                    pls->start_seq_no = rpl.start_seq_no;
-                    pls->finished = rpl.finished;
+                    if (ffmpeg_rs_hls_demux_parse_events(full, hdr_len + buf_len, &r, evs, ev_cap) != 0 ||
+                        r.truncated) {
+                        rust_fallback = 1;
+                    }
+                }
 
-                    for (size_t i = 0; i < rpl.n_segments && i < seg_cap; i++) {
-                        struct segment *seg;
-                        char relurl[MAX_URL_SIZE];
-                        size_t n;
-                        if (segs[i].url_offset + segs[i].url_len > hdr_len + buf_len)
-                            continue;
-                        seg = av_mallocz(sizeof(*seg));
-                        if (!seg) {
-                            ret = AVERROR(ENOMEM);
+                if (!rust_fallback) {
+                    int i;
+                    int is_segment = 0, is_variant = 0;
+                    int64_t duration = 0;
+                    struct variant_info vi;
+
+                    memset(&vi, 0, sizeof(vi));
+
+                    for (i = 0; i < (int)r.n_events_written; i++) {
+                        const FFmpegRsHlsDemuxEvent *e = &evs[i];
+                        if (e->kind == FFMPEG_RS_HLS_EVENT_UNKNOWN) {
+                            rust_fallback = 1;
                             break;
                         }
-                        seg->duration = segs[i].duration_us;
-                        n = FFMIN(segs[i].url_len, sizeof(relurl) - 1);
-                        memcpy(relurl, full + segs[i].url_offset, n);
-                        relurl[n] = 0;
-                        ff_make_absolute_url(seg->url, sizeof(seg->url), url, relurl);
-                        dynarray_add(&pls->segments, &pls->n_segments, seg);
                     }
-
-                    for (size_t i = 0; i < rpl.n_variants && i < var_cap; i++) {
-                        struct variant *v;
-                        char relurl[MAX_URL_SIZE];
-                        size_t n;
-                        if (vars[i].url_offset + vars[i].url_len > hdr_len + buf_len)
-                            continue;
-                        v = av_mallocz(sizeof(*v));
-                        if (!v) {
-                            ret = AVERROR(ENOMEM);
-                            break;
+                    if (!rust_fallback) {
+                        ret = ensure_playlist(c, &pls, url);
+                        if (ret < 0) {
+                            av_free(evs);
+                            av_free(full);
+                            av_free(buf);
+                            goto fail;
                         }
-                        v->bandwidth = vars[i].bandwidth;
-                        n = FFMIN(vars[i].url_len, sizeof(relurl) - 1);
-                        memcpy(relurl, full + vars[i].url_offset, n);
-                        relurl[n] = 0;
-                        ff_make_absolute_url(v->url, sizeof(v->url), url, relurl);
-                        dynarray_add(&c->variants, &c->n_variants, v);
-                    }
 
-                    c->last_load_time = av_gettime_relative();
-                    av_free(segs);
-                    av_free(vars);
+                        prev_start_seq_no = pls->start_seq_no;
+                        prev_segments = pls->segments;
+                        prev_n_segments = pls->n_segments;
+                        pls->segments = NULL;
+                        pls->n_segments = 0;
+                        pls->finished = 0;
+                        pls->type = PLS_TYPE_UNSPECIFIED;
+
+                        for (i = 0; i < (int)r.n_events_written; i++) {
+                            const FFmpegRsHlsDemuxEvent *e = &evs[i];
+                            if (e->kind == FFMPEG_RS_HLS_EVENT_TARGETDURATION) {
+                                pls->target_duration = e->i64_a;
+                            } else if (e->kind == FFMPEG_RS_HLS_EVENT_MEDIA_SEQUENCE) {
+                                uint64_t seq_no = (uint64_t)e->i64_a;
+                                if (seq_no > (uint64_t)INT64_MAX / 2) {
+                                    av_log(c->ctx, AV_LOG_DEBUG, "MEDIA-SEQUENCE higher than "
+                                           "INT64_MAX/2, mask out the highest bit\n");
+                                    seq_no &= (uint64_t)INT64_MAX / 2;
+                                }
+                                pls->start_seq_no = seq_no;
+                            } else if (e->kind == FFMPEG_RS_HLS_EVENT_ENDLIST) {
+                                pls->finished = 1;
+                            } else if (e->kind == FFMPEG_RS_HLS_EVENT_EXTINF) {
+                                is_segment = 1;
+                                duration = e->i64_a;
+                            } else if (e->kind == FFMPEG_RS_HLS_EVENT_STREAM_INF) {
+                                is_variant = 1;
+                                memset(&vi, 0, sizeof(vi));
+                                vi.bandwidth = (int)e->i64_a;
+                            } else if (e->kind == FFMPEG_RS_HLS_EVENT_URI) {
+                                const char *s;
+                                size_t n;
+                                char relurl[MAX_URL_SIZE];
+                                if (e->a_offset + e->a_len > hdr_len + buf_len)
+                                    continue;
+                                s = (const char *)(full + e->a_offset);
+                                n = e->a_len;
+                                if (n >= sizeof(relurl))
+                                    n = sizeof(relurl) - 1;
+                                memcpy(relurl, s, n);
+                                relurl[n] = 0;
+
+                                if (is_variant) {
+                                    if (!new_variant(c, &vi, relurl, url)) {
+                                        ret = AVERROR(ENOMEM);
+                                        break;
+                                    }
+                                    is_variant = 0;
+                                }
+                                if (is_segment) {
+                                    struct segment *seg;
+
+                                    seg = av_malloc(sizeof(*seg));
+                                    if (!seg) {
+                                        ret = AVERROR(ENOMEM);
+                                        break;
+                                    }
+                                    memset(seg, 0, sizeof(*seg));
+                                    seg->duration = duration;
+                                    seg->key = NULL;
+                                    seg->key_type = KEY_NONE;
+                                    seg->size = -1;
+                                    seg->url_offset = 0;
+                                    seg->init_section = NULL;
+
+                                    ff_make_absolute_url(tmp_str, sizeof(tmp_str), url, relurl);
+                                    if (!tmp_str[0]) {
+                                        av_free(seg);
+                                        ret = AVERROR_INVALIDDATA;
+                                        break;
+                                    }
+                                    seg->url = av_strdup(tmp_str);
+                                    if (!seg->url) {
+                                        av_free(seg);
+                                        ret = AVERROR(ENOMEM);
+                                        break;
+                                    }
+
+                                    if (duration < 0.001 * AV_TIME_BASE) {
+                                        av_log(c->ctx, AV_LOG_WARNING, "Cannot get correct #EXTINF value of segment %s,"
+                                               " set to default value to 1ms.\n", seg->url);
+                                        seg->duration = 0.001 * AV_TIME_BASE;
+                                    }
+
+                                    dynarray_add(&pls->segments, &pls->n_segments, seg);
+                                    is_segment = 0;
+                                }
+                            }
+                        }
+
+                        if (prev_segments) {
+                            if (pls->start_seq_no > prev_start_seq_no && c->first_timestamp != AV_NOPTS_VALUE) {
+                                int64_t prev_timestamp = c->first_timestamp;
+                                int j;
+                                int64_t diff = pls->start_seq_no - prev_start_seq_no;
+                                for (j = 0; j < prev_n_segments && j < diff; j++) {
+                                    c->first_timestamp += prev_segments[j]->duration;
+                                }
+                                av_log(c->ctx, AV_LOG_DEBUG, "Media sequence change (%"PRId64" -> %"PRId64")"
+                                       " reflected in first_timestamp: %"PRId64" -> %"PRId64"\n",
+                                       prev_start_seq_no, pls->start_seq_no,
+                                       prev_timestamp, c->first_timestamp);
+                            } else if (pls->start_seq_no < prev_start_seq_no) {
+                                av_log(c->ctx, AV_LOG_WARNING, "Media sequence changed unexpectedly: %"PRId64" -> %"PRId64"\n",
+                                       prev_start_seq_no, pls->start_seq_no);
+                            }
+                            free_segment_dynarray(prev_segments, prev_n_segments);
+                            av_freep(&prev_segments);
+                        }
+
+                        if (pls)
+                            pls->last_load_time = av_gettime_relative();
+                    }
+                }
+
+                av_free(evs);
+
+                if (!rust_fallback && ret >= 0) {
                     av_free(full);
                     av_free(buf);
                     av_free(new_url);
                     if (close_in)
-                        avio_close(in);
+                        ff_format_io_close(c->ctx, &in);
                     return ret;
                 }
-                av_free(segs);
-                av_free(vars);
             }
             av_free(full);
         }

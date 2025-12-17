@@ -33,6 +33,38 @@ pub struct FFmpegRsHlsPlaylist {
     pub n_variants: usize,
 }
 
+#[repr(u32)]
+#[derive(Copy, Clone)]
+pub enum FFmpegRsHlsDemuxEventKind {
+    Uri = 0,
+    ExtInf = 1,
+    StreamInf = 2,
+    TargetDuration = 3,
+    MediaSequence = 4,
+    EndList = 5,
+    Unknown = 255,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct FFmpegRsHlsDemuxEvent {
+    pub kind: u32,
+    pub line_no: u32,
+    pub a_offset: usize,
+    pub a_len: usize,
+    pub b_offset: usize,
+    pub b_len: usize,
+    pub i64_a: i64,
+    pub i64_b: i64,
+}
+
+#[repr(C)]
+pub struct FFmpegRsHlsDemuxParseEventsResult {
+    pub n_events_total: usize,
+    pub n_events_written: usize,
+    pub truncated: c_int,
+}
+
 fn chomp_cr(mut s: &[u8]) -> &[u8] {
     if let Some((&b'\r', rest)) = s.split_last() {
         s = rest;
@@ -129,6 +161,166 @@ fn parse_f64_seconds_to_us(s: &[u8]) -> Option<i64> {
         .saturating_mul(1_000_000)
         .saturating_add(frac.saturating_mul(1_000_000).saturating_div(frac_scale));
     Some(if neg { -us } else { us })
+}
+
+fn parse_bandwidth(attrs: &[u8]) -> Option<i64> {
+    // Very small subset: find BANDWIDTH=digits.
+    let mut i = 0usize;
+    while i + 10 <= attrs.len() {
+        if &attrs[i..i + 10] == b"BANDWIDTH=" {
+            let rest = &attrs[i + 10..];
+            return parse_i64_ascii(rest);
+        }
+        i += 1;
+    }
+    None
+}
+
+fn push_event(
+    out: *mut FFmpegRsHlsDemuxParseEventsResult,
+    events: *mut FFmpegRsHlsDemuxEvent,
+    cap: usize,
+    idx: &mut usize,
+    kind: FFmpegRsHlsDemuxEventKind,
+    line_no: u32,
+    a_offset: usize,
+    a_len: usize,
+    b_offset: usize,
+    b_len: usize,
+    i64_a: i64,
+    i64_b: i64,
+) {
+    if out.is_null() {
+        return;
+    }
+    unsafe {
+        (*out).n_events_total = (*out).n_events_total.saturating_add(1);
+    }
+    if events.is_null() || cap == 0 {
+        return;
+    }
+    if *idx >= cap {
+        unsafe {
+            (*out).truncated = 1;
+        }
+        return;
+    }
+    unsafe {
+        *events.add(*idx) = FFmpegRsHlsDemuxEvent {
+            kind: kind as u32,
+            line_no,
+            a_offset,
+            a_len,
+            b_offset,
+            b_len,
+            i64_a,
+            i64_b,
+        };
+        (*out).n_events_written = (*out).n_events_written.saturating_add(1);
+    }
+    *idx += 1;
+}
+
+#[no_mangle]
+pub extern "C" fn ffmpeg_rs_hls_demux_parse_events(
+    text: *const u8,
+    text_len: usize,
+    out: *mut FFmpegRsHlsDemuxParseEventsResult,
+    events: *mut FFmpegRsHlsDemuxEvent,
+    events_cap: usize,
+) -> c_int {
+    if text.is_null() || out.is_null() {
+        return -1;
+    }
+
+    unsafe {
+        (*out).n_events_total = 0;
+        (*out).n_events_written = 0;
+        (*out).truncated = 0;
+    }
+
+    let data = unsafe { core::slice::from_raw_parts(text, text_len) };
+
+    // Require #EXTM3U first line.
+    let mut iter = data.split(|&b| b == b'\n');
+    let first = iter.next().unwrap_or(&[]);
+    if chomp_cr(first) != b"#EXTM3U" {
+        return -2;
+    }
+
+    let mut idx = 0usize;
+    let mut line_no: u32 = 1;
+
+    for line in iter {
+        line_no = line_no.saturating_add(1);
+        let line = chomp_cr(line);
+        if line.is_empty() {
+            continue;
+        }
+
+        let offset = (line.as_ptr() as usize).wrapping_sub(data.as_ptr() as usize);
+        let len = line.len();
+
+        if starts_with(line, b"#") {
+            if starts_with(line, b"#EXTINF:") {
+                let v = &line[b"#EXTINF:".len()..];
+                let mut dur_us = 0i64;
+                let mut title_off = 0usize;
+                let mut title_len = 0usize;
+                let mut dur_off = 0usize;
+                let mut dur_len = 0usize;
+                let mut parts = v.splitn(2, |&b| b == b',');
+                if let Some(sec_part) = parts.next() {
+                    if let Some(us) = parse_f64_seconds_to_us(sec_part) {
+                        dur_us = us;
+                    }
+                    dur_off = (sec_part.as_ptr() as usize).wrapping_sub(data.as_ptr() as usize);
+                    dur_len = sec_part.len();
+                }
+                if let Some(title) = parts.next() {
+                    let title = chomp_cr(title);
+                    title_off = (title.as_ptr() as usize).wrapping_sub(data.as_ptr() as usize);
+                    title_len = title.len();
+                }
+                push_event(out, events, events_cap, &mut idx, FFmpegRsHlsDemuxEventKind::ExtInf, line_no,
+                           dur_off, dur_len, title_off, title_len, dur_us, 0);
+            } else if starts_with(line, b"#EXT-X-STREAM-INF:") {
+                let attrs = &line[b"#EXT-X-STREAM-INF:".len()..];
+                let attrs = chomp_cr(attrs);
+                let a_off = (attrs.as_ptr() as usize).wrapping_sub(data.as_ptr() as usize);
+                let a_len = attrs.len();
+                let bw = parse_bandwidth(attrs).unwrap_or(0);
+                push_event(out, events, events_cap, &mut idx, FFmpegRsHlsDemuxEventKind::StreamInf, line_no,
+                           a_off, a_len, 0, 0, bw, 0);
+            } else if starts_with(line, b"#EXT-X-TARGETDURATION:") {
+                let v = &line[b"#EXT-X-TARGETDURATION:".len()..];
+                let a_off = (v.as_ptr() as usize).wrapping_sub(data.as_ptr() as usize);
+                let a_len = v.len();
+                let us = parse_i64_ascii(v).unwrap_or(0).saturating_mul(1_000_000);
+                push_event(out, events, events_cap, &mut idx, FFmpegRsHlsDemuxEventKind::TargetDuration, line_no,
+                           a_off, a_len, 0, 0, us, 0);
+            } else if starts_with(line, b"#EXT-X-MEDIA-SEQUENCE:") {
+                let v = &line[b"#EXT-X-MEDIA-SEQUENCE:".len()..];
+                let a_off = (v.as_ptr() as usize).wrapping_sub(data.as_ptr() as usize);
+                let a_len = v.len();
+                let seq = parse_i64_ascii(v).unwrap_or(0);
+                push_event(out, events, events_cap, &mut idx, FFmpegRsHlsDemuxEventKind::MediaSequence, line_no,
+                           a_off, a_len, 0, 0, seq, 0);
+            } else if starts_with(line, b"#EXT-X-ENDLIST") {
+                push_event(out, events, events_cap, &mut idx, FFmpegRsHlsDemuxEventKind::EndList, line_no,
+                           0, 0, 0, 0, 0, 0);
+            } else {
+                // Preserve unknown tag line for debugging/fallback decisions.
+                push_event(out, events, events_cap, &mut idx, FFmpegRsHlsDemuxEventKind::Unknown, line_no,
+                           offset, len, 0, 0, 0, 0);
+            }
+        } else {
+            push_event(out, events, events_cap, &mut idx, FFmpegRsHlsDemuxEventKind::Uri, line_no,
+                       offset, len, 0, 0, 0, 0);
+        }
+    }
+
+    0
 }
 
 #[no_mangle]
@@ -244,7 +436,51 @@ pub extern "C" fn ffmpeg_rs_hls_parse(
 }
 
 #[cfg(test)]
-mod tests {
+mod tests_demux_events {
+    use super::*;
+
+    #[test]
+    fn demux_events_basic() {
+        let txt = b"#EXTM3U\n#EXT-X-TARGETDURATION:6\n#EXTINF:2.5,hello\nseg.ts\n#EXT-X-ENDLIST\n";
+        let mut out = FFmpegRsHlsDemuxParseEventsResult { n_events_total: 0, n_events_written: 0, truncated: 0 };
+        let mut evs = [FFmpegRsHlsDemuxEvent {
+            kind: 0, line_no: 0, a_offset: 0, a_len: 0, b_offset: 0, b_len: 0, i64_a: 0, i64_b: 0
+        }; 16];
+
+        let r = ffmpeg_rs_hls_demux_parse_events(txt.as_ptr(), txt.len(), &mut out, evs.as_mut_ptr(), evs.len());
+        assert_eq!(r, 0);
+        assert_eq!(out.truncated, 0);
+        assert!(out.n_events_written >= 4);
+
+        assert_eq!(evs[0].kind, FFmpegRsHlsDemuxEventKind::TargetDuration as u32);
+        assert_eq!(evs[0].i64_a, 6_000_000);
+
+        assert_eq!(evs[1].kind, FFmpegRsHlsDemuxEventKind::ExtInf as u32);
+        assert_eq!(evs[1].i64_a, 2_500_000);
+        let title = &txt[evs[1].b_offset..evs[1].b_offset + evs[1].b_len];
+        assert_eq!(title, b"hello");
+
+        assert_eq!(evs[2].kind, FFmpegRsHlsDemuxEventKind::Uri as u32);
+        let uri = &txt[evs[2].a_offset..evs[2].a_offset + evs[2].a_len];
+        assert_eq!(uri, b"seg.ts");
+
+        assert_eq!(evs[3].kind, FFmpegRsHlsDemuxEventKind::EndList as u32);
+    }
+
+    #[test]
+    fn demux_events_size_only() {
+        let txt = b"#EXTM3U\n#EXT-X-ENDLIST\n";
+        let mut out = FFmpegRsHlsDemuxParseEventsResult { n_events_total: 0, n_events_written: 0, truncated: 0 };
+        let r = ffmpeg_rs_hls_demux_parse_events(txt.as_ptr(), txt.len(), &mut out, core::ptr::null_mut(), 0);
+        assert_eq!(r, 0);
+        assert_eq!(out.n_events_total, 1);
+        assert_eq!(out.n_events_written, 0);
+        assert_eq!(out.truncated, 0);
+    }
+}
+
+#[cfg(test)]
+mod tests_hls_parse {
     use super::*;
 
     #[test]

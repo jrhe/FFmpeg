@@ -68,6 +68,18 @@ Run:
 
 This benchmark prints both a small C baseline (`hlswriter(c)`) and the Rust path (`hlswriter(rust)`).
 
+## HLS demuxer playlist parser
+
+The demuxer integration is staged: Rust produces a token/event stream, and the
+apply layer can remain in C while coverage is expanded.
+
+### Fuzz harness (event parser)
+
+Build the fuzzer object (Rust enabled):
+
+`./configure --disable-programs --enable-rust-hlsdemux-parser`
+`make tools/target_hlsdemux_events_fuzzer.o`
+
 ## WebVTT parser
 
 Microbenchmark (CPU + wall):

@@ -70,6 +70,30 @@ This file tracks choices that affect multiple future “Rust islands”. None of
 3. **DASH MPD parsing dependencies**
    - Decide whether Rust MPD parsing can use an XML crate (license audit + build/cross-compile implications) or must be a minimal, internal parser.
 
+## HLS demuxer migration approach (recommended)
+
+Goal: avoid a “big bang” rewrite of `libavformat/hls.c:parse_playlist()` while still moving the risky text parsing surface into Rust.
+
+1. **Rust “parse” layer (token/event stream)**
+   - Rust consumes the playlist bytes and emits a compact array of POD events (tag kind + value spans into the original buffer + parsed numeric fields where useful).
+   - Unknown tags are preserved as “unknown” events rather than triggering failure.
+   - No allocations in Rust; caller provides the output buffer and can size-query.
+
+2. **C “apply” layer (initially)**
+   - C iterates the event stream and applies semantics to existing `HLSContext`/`playlist`/`segment` structs using existing helpers.
+   - Fallback to the legacy C line parser on Rust parse failure, truncation, or unsupported events while coverage is grown.
+
+3. **Future: Rust “apply” layer behind a separate flag**
+   - A Rust apply implementation (building the same semantic model) should be gated behind a separate configure flag so it can be enabled independently of the parse/token layer.
+   - This keeps the low-risk “Rust parsing + C semantics” path available even if the Rust apply path is still maturing.
+
+### Rollout plan (tests + fuzzing)
+
+- Add/maintain a libFuzzer entrypoint for the Rust event parser (`tools/target_hlsdemux_events_fuzzer.c`).
+- Add a “differential” debug mode in C (non-fate) that runs both C-line parsing and Rust-events parsing on the same input and compares a normalized summary (segment count/durations, variants, media sequence, endlist) to catch semantic drift.
+- Grow coverage by implementing additional event kinds (KEY/MAP/MEDIA/BYTERANGE/PROGRAM-DATE-TIME/PLAYLIST-TYPE/START/…) while keeping C as the apply layer.
+- Once event coverage is high and FATE is stable, prototype a Rust apply layer behind `--enable-rust-hlsdemux-apply` and fuzz it separately (apply fuzz target should construct a minimal `HLSContext`/`playlist` and apply the event stream).
+
 ## P1 status log
 
 - 2025-12-17: Added benches + fuzz harnesses for Rust WebVTT/SubRip and ran `make fate` with `FATE_SAMPLES=./fate-suite`; no remaining P1 blockers identified.
