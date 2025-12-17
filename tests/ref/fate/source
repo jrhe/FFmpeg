@@ -15,9 +15,15 @@ libavformat/golomb_tab.c
 libavformat/log2_tab.c
 libavformat/rangecoder_dec.c
 libavformat/riscv/cpu_common.c
+libavutil/ffmpeg_rs.c
+libavutil/ffmpeg_rs.h
 libswresample/log2_tab.c
 libswscale/log2_tab.c
 libswscale/riscv/cpu_common.c
+rust/ffmpeg-ffi/include/ffmpeg_rs.h
+rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsparser.h
+rust/ffmpeg-hlswriter/include/ffmpeg_rs_hlswriter.h
+tools/target_hlsproto_fuzzer.c
 tools/uncoded_frame.c
 tools/yuvcmp.c
 Headers without standard inclusion guards:
@@ -26,6 +32,10 @@ compat/float/float.h
 compat/float/limits.h
 compat/stdbit/stdbit.h
 libavcodec/bitstream_template.h
+libavutil/ffmpeg_rs.h
+rust/ffmpeg-ffi/include/ffmpeg_rs.h
+rust/ffmpeg-hlsparser/include/ffmpeg_rs_hlsparser.h
+rust/ffmpeg-hlswriter/include/ffmpeg_rs_hlswriter.h
 tools/decode_simple.h
 Use of av_clip() where av_clip_uintp2() could be used:
 Use of av_clip() where av_clip_intp2() could be used:
