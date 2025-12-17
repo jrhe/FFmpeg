@@ -1,4 +1,5 @@
 TOOLS = enc_recon_frame_test enum_options qt-faststart scale_slice_test trasher uncoded_frame
+TOOLS-$(CONFIG_RUST_HLSWRITER) += bench_hlswriter
 TOOLS-$(CONFIG_RUST_HLSPARSER) += bench_hlsparser
 TOOLS-$(CONFIG_LIBMYSOFA) += sofa2wavs
 TOOLS-$(CONFIG_ZLIB) += cws2fws
@@ -36,12 +37,18 @@ tools/bench_common.o: tools/bench_common.c
 tools/bench_hlsparser.o: tools/bench_hlsparser.c
 	$(COMPILE_C)
 
+tools/bench_hlswriter.o: tools/bench_hlswriter.c
+	$(COMPILE_C)
+
 tools/enc_recon_frame_test$(EXESUF): tools/decode_simple.o
 tools/venc_data_dump$(EXESUF): tools/decode_simple.o
 tools/scale_slice_test$(EXESUF): tools/decode_simple.o
 tools/decode_simple.o: | tools
 
 tools/bench_hlsparser$(EXESUF): tools/bench_hlsparser.o tools/bench_common.o
+	$(call LINK,$(LDFLAGS) $(LDEXEFLAGS) $(LD_O) $^ $(ELIBS))
+
+tools/bench_hlswriter$(EXESUF): tools/bench_hlswriter.o tools/bench_common.o
 	$(call LINK,$(LDFLAGS) $(LDEXEFLAGS) $(LD_O) $^ $(ELIBS))
 
 OUTDIRS += tools

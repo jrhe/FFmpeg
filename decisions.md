@@ -51,5 +51,10 @@ This file tracks choices that affect multiple future “Rust islands”. None of
 
 10. **Promotion criteria**
    - When does a Rust component become default?
-     - After N fuzz-hours + FATE stable + performance parity.
+   - After N fuzz-hours + FATE stable + performance parity.
 
+## Benchmarking TODOs (deferred)
+
+1. **Fuzz throughput harness**
+   - Add a simple, reproducible way to measure executions/sec for each fuzzer target.
+   - Options: libFuzzer-based run in CI, or a local “tight loop” harness that calls the fuzzer entrypoint over corpus inputs.

@@ -34,3 +34,15 @@ To measure executions/sec, link it with your libFuzzer toolchain (varies by plat
 - These benchmarks are intentionally simple and are not a substitute for full profiling.
 - For “startup latency” in end-to-end scenarios, prefer timing `ffprobe`/`ffmpeg` opening representative HLS inputs.
 
+## HLS playlist writer
+
+### Microbenchmark (CPU + wall)
+
+Build:
+
+`./configure --disable-programs --enable-rust-hlswriter`
+`make tools/bench_hlswriter`
+
+Run:
+
+`./tools/bench_hlswriter 2000000 7`
