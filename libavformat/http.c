@@ -46,6 +46,7 @@
 #include "internal.h"
 #include "network.h"
 #include "os_support.h"
+#include "rust_parse.h"
 #include "url.h"
 #include "version.h"
 
@@ -1258,7 +1259,7 @@ static int process_line(URLContext *h, char *line, int line_count, int *parsed_h
             }
         } else if (!av_strcasecmp(tag, "Content-Type")) {
             av_free(s->mime_type);
-            s->mime_type = av_get_token((const char **)&p, ";");
+            s->mime_type = ff_rust_av_get_token((const char **)&p, ";");
         } else if (!av_strcasecmp(tag, "Set-Cookie")) {
             if (parse_cookie(s, p, &s->cookie_dict))
                 av_log(h, AV_LOG_WARNING, "Unable to parse '%s'\n", p);

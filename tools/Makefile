@@ -105,6 +105,9 @@ tools/target_data_uri_fuzzer.o: tools/target_data_uri_fuzzer.c
 tools/target_ffmetadata_kv_fuzzer.o: tools/target_ffmetadata_kv_fuzzer.c
 	$(COMPILE_C)
 
+tools/target_util_get_token_fuzzer.o: tools/target_util_get_token_fuzzer.c
+	$(COMPILE_C)
+
 tools/bench_common.o: tools/bench_common.c
 	$(COMPILE_C)
 

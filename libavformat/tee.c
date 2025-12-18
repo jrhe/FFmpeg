@@ -28,6 +28,7 @@
 #include "internal.h"
 #include "avformat.h"
 #include "mux.h"
+#include "rust_parse.h"
 #include "tee_common.h"
 
 typedef enum {
@@ -457,7 +458,7 @@ static int tee_write_header(AVFormatContext *avf)
     int ret;
 
     while (*filename) {
-        char *slave = av_get_token(&filename, slave_delim);
+        char *slave = ff_rust_av_get_token(&filename, slave_delim);
         if (!slave) {
             ret = AVERROR(ENOMEM);
             goto fail;

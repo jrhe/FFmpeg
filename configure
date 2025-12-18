@@ -141,6 +141,7 @@ Rust options:
   --enable-rust-concat     enable Rust ffconcat/concat demuxer script parsing helpers (subset) [no]
   --enable-rust-data-uri   enable Rust data: URI protocol parsing helper (subset) [no]
   --enable-rust-ffmetadata enable Rust ffmetadata demuxer key/value parsing helpers (subset) [no]
+  --enable-rust-util-parse enable Rust shared bounded parsing helpers (subset) [no]
 
 Program options:
   --disable-programs       do not build command line programs
@@ -2791,6 +2792,7 @@ CMDLINE_SELECT="
     rust_concat
     rust_data_uri
     rust_ffmetadata
+    rust_util_parse
 "
 
 PATHS_LIST="
@@ -7841,6 +7843,7 @@ enabled rust_id3v2 && enable rust
 enabled rust_concat && enable rust
 enabled rust_data_uri && enable rust
 enabled rust_ffmetadata && enable rust
+enabled rust_util_parse && enable rust
 
 if enabled rust_hlswriter; then
     add_cppflags -DCONFIG_RUST_HLSWRITER
@@ -7948,6 +7951,10 @@ fi
 
 if enabled rust_ffmetadata; then
     add_cppflags -DCONFIG_RUST_FFMETADATA
+fi
+
+if enabled rust_util_parse; then
+    add_cppflags -DCONFIG_RUST_UTIL_PARSE
 fi
 
 enabled neon_clobber_test &&

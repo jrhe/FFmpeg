@@ -22,6 +22,7 @@
 #include "ip.h"
 #include "libavutil/avstring.h"
 #include "libavutil/mem.h"
+#include "rust_parse.h"
 
 static int compare_addr(const struct sockaddr_storage *a,
                         const struct sockaddr_storage *b)
@@ -102,7 +103,7 @@ static int ip_parse_addr_list(void *log_ctx, const char *buf,
     /* Resolve all of the IPs */
 
     while (buf && buf[0]) {
-        char* host = av_get_token(&buf, ",");
+        char* host = ff_rust_av_get_token(&buf, ",");
         if (!host)
             return AVERROR(ENOMEM);
 

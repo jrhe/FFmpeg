@@ -31,6 +31,7 @@
 #include "libavutil/mem.h"
 
 #include "avio_internal.h"
+#include "rust_parse.h"
 #include "url.h"
 
 #define AV_CAT_SEPARATOR "|"
@@ -254,7 +255,7 @@ static av_cold int concatf_open(URLContext *h, const char *uri, int flags)
         if (!cursor[leading_spaces])
             break;
 
-        node_uri = av_get_token(&cursor, "\r\n");
+        node_uri = ff_rust_av_get_token(&cursor, "\r\n");
         if (!node_uri) {
             err = AVERROR(ENOMEM);
             break;

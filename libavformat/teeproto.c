@@ -26,6 +26,7 @@
 #include "libavutil/error.h"
 #include "libavutil/mem.h"
 #include "tee_common.h"
+#include "rust_parse.h"
 #include "url.h"
 
 typedef struct ChildContext {
@@ -78,7 +79,7 @@ static int tee_open(URLContext *h, const char *filename, int flags)
     av_strstart(filename, "tee:", &filename);
 
     while (*filename) {
-        char *child_string = av_get_token(&filename, child_delim);
+        char *child_string = ff_rust_av_get_token(&filename, child_delim);
         char *child_name = NULL;
         void *tmp;
         AVDictionary *options = NULL;

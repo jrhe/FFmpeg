@@ -101,7 +101,7 @@ Legend:
 
 | Component | Flag | Wiring | Tests | Fuzz | Bench | Status |
 |---|---|---|---|---|---|---|
-| Shared bounded string/kv parser helpers | `--enable-rust-util-parse` | shared helper call sites | unit tests + `make fate` | planned | microbench planned | planned |
+| Shared bounded parsing helpers | `--enable-rust-util-parse` | `libavformat/rust_parse.h` call sites | unit tests + `make fate` | `tools/target_util_get_token_fuzzer.c` | planned | done (subset) |
 | ID3v2 helpers | `--enable-rust-id3v2` | `libavformat/id3v2.c` | `make fate-id3v2` + `make fate-adts-id3v2-demux` | `tools/target_id3v2_taglen_fuzzer.c` | planned | done (subset) |
 
 ### Tier 0: Tooling and scaffolding (do first)

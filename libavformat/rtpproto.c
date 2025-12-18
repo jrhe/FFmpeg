@@ -34,6 +34,7 @@
 #include "rtpproto.h"
 #include "url.h"
 #include "ip.h"
+#include "rust_parse.h"
 
 #include <stdarg.h>
 #include "network.h"
@@ -268,7 +269,7 @@ static int rtp_open(URLContext *h, const char *uri, int flags)
     if (s->fec_options_str) {
         p = s->fec_options_str;
 
-        if (!(fec_protocol = av_get_token(&p, "="))) {
+        if (!(fec_protocol = ff_rust_av_get_token(&p, "="))) {
             av_log(h, AV_LOG_ERROR, "Failed to parse the FEC protocol value\n");
             ret = AVERROR(EINVAL);
             goto fail;
