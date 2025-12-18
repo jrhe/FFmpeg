@@ -27,6 +27,10 @@
 #include "ffmeta.h"
 #include "libavutil/dict.h"
 
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_FFMETADATA)
+#include "../rust/ffmpeg-ffmetadata/include/ffmpeg_rs_ffmetadata.h"
+#endif
+
 static int probe(const AVProbeData *p)
 {
     if(!memcmp(p->buf, ID_STRING, strlen(ID_STRING)))
@@ -149,6 +153,46 @@ static int read_tag(const uint8_t *line, AVDictionary **m)
     const uint8_t *p = line;
 
     /* find first not escaped '=' */
+#if defined(HAVE_FFMPEG_RUST) && defined(CONFIG_RUST_FFMETADATA)
+    {
+        FFMpegRsFFMetaSplit split = { 0 };
+        const size_t line_len = strlen((const char *)line) + 1;
+        const int rc = ffmpeg_rs_ffmetadata_split_kv(line, line_len, &split);
+
+        if (rc < 0)
+            return AVERROR(EINVAL);
+        if (rc > 0)
+            return 0;
+
+        p = line + split.eq_offset;
+
+        key = av_malloc(split.key_unescaped_len + 1);
+        if (!key)
+            return AVERROR(ENOMEM);
+        value = av_malloc(split.value_unescaped_len + 1);
+        if (!value) {
+            av_free(key);
+            return AVERROR(ENOMEM);
+        }
+
+        size_t written = 0;
+        if (ffmpeg_rs_ffmetadata_unescape(key, split.key_unescaped_len + 1, line, split.key_escaped_len + 1, &written) < 0) {
+            av_free(key);
+            av_free(value);
+            return AVERROR_INVALIDDATA;
+        }
+        written = 0;
+        if (ffmpeg_rs_ffmetadata_unescape(value, split.value_unescaped_len + 1, p + 1, split.value_escaped_len + 1, &written) < 0) {
+            av_free(key);
+            av_free(value);
+            return AVERROR_INVALIDDATA;
+        }
+
+        av_dict_set(m, key, value, AV_DICT_DONT_STRDUP_KEY | AV_DICT_DONT_STRDUP_VAL);
+        return 0;
+    }
+#endif
+
     while (1) {
         if (*p == '=')
             break;
