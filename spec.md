@@ -57,7 +57,7 @@ Legend:
 | HLS playlist writer (header) | `--enable-rust-hlswriter` | `libavformat/hlsplaylist.c` | `make fate-avstring` + `cargo test` | (n/a) | `tools/bench_hlswriter` (A/B) | done |
 | HLS playlist parser (hlsproto) | `--enable-rust-hlsparser` | `libavformat/hlsproto.c` | `make fate` + `cargo test` | `tools/target_hlsproto_fuzzer.c` | `tools/bench_hlsparser` (A/B), `tools/bench_startup_latency_hlsproto*.sh` | done |
 | HLS playlist parser (HLS demuxer) | `--enable-rust-hlsdemux-parser` | `libavformat/hls.c` | targeted `fate-hls*` + `make fate` | `tools/target_hlsdemux_events_fuzzer.c` | planned | done (subset; parse events staged) |
-| DASH MPD parser | `--enable-rust-dash-mpd` | `libavformat/dash*` | targeted `fate-webm-dash-manifest*` + `make fate` | planned | planned | deferred (keep C parser for now) |
+| HLS demuxer apply layer (experimental) | `--enable-rust-hlsdemux-apply` | `libavformat/hls.c` | targeted `fate-hls*` + `make fate` | planned | planned | planned (flag exists; wiring pending) |
 
 ### Sidecar / Metadata
 
@@ -100,8 +100,13 @@ Legend:
 
 | Component | Flag | Wiring | Tests | Fuzz | Bench | Status |
 |---|---|---|---|---|---|---|
+| FFI glue (`ffmpeg-ffi`) | `--enable-rust` | shared | `cargo test` (crate-local) + `make fate` | planned | planned | done (subset) |
 | Shared bounded parsing helpers | `--enable-rust-util-parse` | `libavformat/rust_parse.h` call sites | unit tests + `make fate` | `tools/target_util_get_token_fuzzer.c` | planned | done (subset) |
 | ID3v2 helpers | `--enable-rust-id3v2` | `libavformat/id3v2.c` | `make fate-id3v2` + `make fate-adts-id3v2-demux` | `tools/target_id3v2_taglen_fuzzer.c` | planned | done (subset) |
+
+### Deferred (Not Implemented In-Tree)
+
+- DASH MPD parser: deferred pending an XML dependency policy decision (keeps the C parser for now).
 
 ### Tier 0: Tooling and scaffolding (do first)
 
@@ -147,7 +152,7 @@ Legend:
      - Pick one format at a time.
      - Introduce a Rust “reader” that consumes `AVIOContext` bytes via a tiny C shim (read/seek callbacks) rather than exposing `AVIOContext*`.
      - Return parsed packet boundaries + metadata to the existing C demuxer/muxer.
-     - Gate behind `--enable-rust-demuxer-foo` once the pattern is proven.
+     - Gate behind a per-demuxer configure flag once the pattern is proven.
 
 ### Tier 2: Protocol handlers (good isolation)
 

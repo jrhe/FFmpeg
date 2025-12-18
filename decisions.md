@@ -107,3 +107,8 @@ Goal: avoid a “big bang” rewrite of `libavformat/hls.c:parse_playlist()` whi
 - 2025-12-17: Added Rust `data:` URI protocol parsing helper (`--enable-rust-data-uri`) plus a deterministic FATE test (`fate-data-uri-wav`) and fuzzer `tools/target_data_uri_fuzzer.c`.
 - 2025-12-17: Added Rust ffmetadata demuxer key/value parsing helpers (`--enable-rust-ffmetadata`) with fuzzer `tools/target_ffmetadata_kv_fuzzer.c`; existing `fate-ffprobe_*` coverage exercises the demuxer path.
 - 2025-12-18: Added shared Rust bounded token parsing helper (`--enable-rust-util-parse`) wired via `libavformat/rust_parse.h` into `av_get_token()` call sites (http/rtpproto/tee/teeproto/concat/ ip); fuzzer `tools/target_util_get_token_fuzzer.c`.
+
+## Tracker integrity notes
+
+- `--enable-rust-hlsdemux-apply` exists in `configure` but is not yet wired into `libavformat/hls.c` (flag reserved for the future Rust apply layer); keep this explicit in `spec.md` until implemented or removed.
+- DASH MPD parsing remains deferred and is not currently implemented behind a Rust flag in-tree (policy decision on XML dependencies required first).
