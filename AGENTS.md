@@ -36,7 +36,6 @@ Microbenches (after building):
 
 ## Commit & Pull Request Guidelines
 
-- Use short, imperative commit subjects (e.g., “Add Rust WebVTT cue parser…”).
+- Use short, imperative commit subjects; common prefixes in this repo include `rust:`, `hls:`, `spec:`, `tests:`.
 - Include rationale and test commands in the commit body when changing parsing behavior.
 - PRs should describe scope, flags used (e.g. `--enable-rust-*`), and relevant FATE targets.
-

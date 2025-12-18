@@ -15,6 +15,7 @@ libavformat/golomb_tab.c
 libavformat/log2_tab.c
 libavformat/rangecoder_dec.c
 libavformat/riscv/cpu_common.c
+libavformat/rust_parse.h
 libavutil/ffmpeg_rs.c
 libavutil/ffmpeg_rs.h
 libswresample/log2_tab.c
@@ -44,6 +45,7 @@ rust/ffmpeg-stl/include/ffmpeg_rs_stl.h
 rust/ffmpeg-subrip/include/ffmpeg_rs_subrip.h
 rust/ffmpeg-subviewer/include/ffmpeg_rs_subviewer.h
 rust/ffmpeg-ttml/include/ffmpeg_rs_ttml.h
+rust/ffmpeg-util-parse/include/ffmpeg_rs_util_parse.h
 rust/ffmpeg-vplayer/include/ffmpeg_rs_vplayer.h
 rust/ffmpeg-webvtt/include/ffmpeg_rs_webvtt.h
 tools/bench_common.c
@@ -57,6 +59,7 @@ tools/target_ass_dialogue_fuzzer.c
 tools/target_concat_token_fuzzer.c
 tools/target_data_uri_fuzzer.c
 tools/target_ffmetadata_kv_fuzzer.c
+tools/target_hlsdemux_apply_fuzzer.c
 tools/target_hlsdemux_events_fuzzer.c
 tools/target_hlsproto_fuzzer.c
 tools/target_id3v2_taglen_fuzzer.c
@@ -75,6 +78,7 @@ tools/target_stl_line_fuzzer.c
 tools/target_subrip_fuzzer.c
 tools/target_subviewer_ts_fuzzer.c
 tools/target_ttml_extradata_fuzzer.c
+tools/target_util_get_token_fuzzer.c
 tools/target_vplayer_line_fuzzer.c
 tools/target_webvtt_fuzzer.c
 tools/uncoded_frame.c
@@ -85,6 +89,7 @@ compat/float/float.h
 compat/float/limits.h
 compat/stdbit/stdbit.h
 libavcodec/bitstream_template.h
+libavformat/rust_parse.h
 libavutil/ffmpeg_rs.h
 rust/ffmpeg-aqtitle/include/ffmpeg_rs_aqtitle.h
 rust/ffmpeg-ass/include/ffmpeg_rs_ass.h
@@ -110,6 +115,7 @@ rust/ffmpeg-stl/include/ffmpeg_rs_stl.h
 rust/ffmpeg-subrip/include/ffmpeg_rs_subrip.h
 rust/ffmpeg-subviewer/include/ffmpeg_rs_subviewer.h
 rust/ffmpeg-ttml/include/ffmpeg_rs_ttml.h
+rust/ffmpeg-util-parse/include/ffmpeg_rs_util_parse.h
 rust/ffmpeg-vplayer/include/ffmpeg_rs_vplayer.h
 rust/ffmpeg-webvtt/include/ffmpeg_rs_webvtt.h
 tools/bench_common.h

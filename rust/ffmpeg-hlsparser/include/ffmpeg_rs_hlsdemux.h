@@ -56,4 +56,3 @@ int ffmpeg_rs_hls_demux_parse_events(const uint8_t *text, size_t text_len,
 #ifdef __cplusplus
 }
 #endif
-

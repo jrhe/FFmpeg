@@ -101,14 +101,15 @@ Goal: avoid a “big bang” rewrite of `libavformat/hls.c:parse_playlist()` whi
 
 ## P1 status log
 
-- 2025-12-17: Added benches + fuzz harnesses for Rust WebVTT/SubRip and ran `make fate` with `FATE_SAMPLES=./fate-suite`; no remaining P1 blockers identified.
+- 2025-12-17: Added benches + fuzz harnesses for Rust WebVTT/SubRip and ran `FATE_SAMPLES=./fate-suite make fate`.
 - 2025-12-17: Completed Rust JACOsub timestamp/shift helpers (`--enable-rust-jacosub`) and ran `fate-sub-jacosub*`; updated linking so subtitle Rust crates are added to `ffbuild/library.mak` when enabled.
 - 2025-12-17: Added Rust helpers for ffconcat/concat demuxer token parsing (`--enable-rust-concat`) with fuzzer `tools/target_concat_token_fuzzer.c`; behavior remains C-compatible and falls back on Rust errors.
 - 2025-12-17: Added Rust `data:` URI protocol parsing helper (`--enable-rust-data-uri`) plus a deterministic FATE test (`fate-data-uri-wav`) and fuzzer `tools/target_data_uri_fuzzer.c`.
 - 2025-12-17: Added Rust ffmetadata demuxer key/value parsing helpers (`--enable-rust-ffmetadata`) with fuzzer `tools/target_ffmetadata_kv_fuzzer.c`; existing `fate-ffprobe_*` coverage exercises the demuxer path.
 - 2025-12-18: Added shared Rust bounded token parsing helper (`--enable-rust-util-parse`) wired via `libavformat/rust_parse.h` into `av_get_token()` call sites (http/rtpproto/tee/teeproto/concat/ ip); fuzzer `tools/target_util_get_token_fuzzer.c`.
+- 2025-12-18: Wired HLS demuxer strict Rust parse+apply behind `--enable-rust-hlsdemux-apply` (C fallback on unknown tags) and added `tools/target_hlsdemux_apply_fuzzer.c`; validated with `./configure --enable-rust-hlsdemux-apply`, `make fate-source`, `FATE_SAMPLES=./fate-suite make fate`, and `cargo test` in `rust/ffmpeg-hlsparser`.
 
 ## Tracker integrity notes
 
-- `--enable-rust-hlsdemux-apply` exists in `configure` but is not yet wired into `libavformat/hls.c` (flag reserved for the future Rust apply layer); keep this explicit in `spec.md` until implemented or removed.
+- `--enable-rust-hlsdemux-apply` is now wired into `libavformat/hls.c`, but remains intentionally strict/subset and must fall back on unknown tags.
 - DASH MPD parsing remains deferred and is not currently implemented behind a Rust flag in-tree (policy decision on XML dependencies required first).

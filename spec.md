@@ -38,6 +38,17 @@ Rust code is compiled as one or more `staticlib` crates and linked into FFmpeg.
 
 ## Prioritized Conversion Backlog
 
+### P1: Initial priorities (complete)
+
+P1 is the “prove the pattern” bucket: ship a few Rust-backed parsers behind `--enable-rust-*` flags, keep the legacy C paths as fallback, and require broad regression coverage (FATE + fuzz harnesses).
+
+Included in P1:
+
+- HLS demuxer playlist parsing subset (`--enable-rust-hlsdemux-parser`) plus experimental strict parse+apply path (`--enable-rust-hlsdemux-apply`).
+- Sidecar subtitle parsers: WebVTT (`--enable-rust-webvtt`) and SubRip/SRT (`--enable-rust-subrip`).
+- Bench and fuzz harnesses for the above.
+- `make fate-source` kept green; `FATE_SAMPLES=./fate-suite make fate` used as the “must pass” regression suite.
+
 ## Component Tracker
 
 This section tracks each Rust-backed component (“Rust island”) with its flag, wiring point, tests, fuzz target, and benchmarks.
@@ -57,7 +68,7 @@ Legend:
 | HLS playlist writer (header) | `--enable-rust-hlswriter` | `libavformat/hlsplaylist.c` | `make fate-avstring` + `cargo test` | (n/a) | `tools/bench_hlswriter` (A/B) | done |
 | HLS playlist parser (hlsproto) | `--enable-rust-hlsparser` | `libavformat/hlsproto.c` | `make fate` + `cargo test` | `tools/target_hlsproto_fuzzer.c` | `tools/bench_hlsparser` (A/B), `tools/bench_startup_latency_hlsproto*.sh` | done |
 | HLS playlist parser (HLS demuxer) | `--enable-rust-hlsdemux-parser` | `libavformat/hls.c` | targeted `fate-hls*` + `make fate` | `tools/target_hlsdemux_events_fuzzer.c` | planned | done (subset; parse events staged) |
-| HLS demuxer apply layer (experimental) | `--enable-rust-hlsdemux-apply` | `libavformat/hls.c` | targeted `fate-hls*` + `make fate` | planned | planned | planned (flag exists; wiring pending) |
+| HLS demuxer apply layer (experimental) | `--enable-rust-hlsdemux-apply` | `libavformat/hls.c` | targeted `fate-hls*` + `make fate` | `tools/target_hlsdemux_apply_fuzzer.c` | planned | done (subset; strict parse + C apply) |
 
 ### Sidecar / Metadata
 

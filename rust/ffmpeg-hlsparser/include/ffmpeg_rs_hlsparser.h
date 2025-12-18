@@ -40,7 +40,15 @@ int ffmpeg_rs_hls_parse(const uint8_t *text, size_t text_len,
                         FFmpegRsHlsSegment *out_segments, size_t out_segments_cap,
                         FFmpegRsHlsVariant *out_variants, size_t out_variants_cap);
 
+/*
+ * Like `ffmpeg_rs_hls_parse`, but fails on any unknown `#EXT*` tags.
+ * Intended for use by the experimental HLS demuxer apply layer.
+ */
+int ffmpeg_rs_hls_parse_strict(const uint8_t *text, size_t text_len,
+                               FFmpegRsHlsPlaylist *out_playlist,
+                               FFmpegRsHlsSegment *out_segments, size_t out_segments_cap,
+                               FFmpegRsHlsVariant *out_variants, size_t out_variants_cap);
+
 #ifdef __cplusplus
 }
 #endif
-

@@ -435,6 +435,121 @@ pub extern "C" fn ffmpeg_rs_hls_parse(
     0
 }
 
+#[no_mangle]
+pub extern "C" fn ffmpeg_rs_hls_parse_strict(
+    text: *const u8,
+    text_len: usize,
+    out_playlist: *mut FFmpegRsHlsPlaylist,
+    out_segments: *mut FFmpegRsHlsSegment,
+    out_segments_cap: usize,
+    out_variants: *mut FFmpegRsHlsVariant,
+    out_variants_cap: usize,
+) -> c_int {
+    if text.is_null() || out_playlist.is_null() {
+        return -1;
+    }
+    let data = unsafe { core::slice::from_raw_parts(text, text_len) };
+
+    let mut playlist = FFmpegRsHlsPlaylist {
+        target_duration_us: 0,
+        start_seq_no: 0,
+        finished: 0,
+        n_segments: 0,
+        n_variants: 0,
+    };
+
+    // Require #EXTM3U first line.
+    let mut iter = data.split(|&b| b == b'\n');
+    let first = iter.next().unwrap_or(&[]);
+    if chomp_cr(first) != b"#EXTM3U" {
+        return -2;
+    }
+
+    let mut pending_seg_dur: Option<i64> = None;
+    let mut pending_variant_bw: Option<i32> = None;
+
+    for line in iter {
+        let line = chomp_cr(line);
+        if line.is_empty() {
+            continue;
+        }
+        if starts_with(line, b"#") {
+            if starts_with(line, b"#EXT-X-TARGETDURATION:") {
+                let v = &line[b"#EXT-X-TARGETDURATION:".len()..];
+                if let Some(sec) = parse_i64_ascii(v) {
+                    playlist.target_duration_us = sec.saturating_mul(1_000_000);
+                }
+            } else if starts_with(line, b"#EXT-X-MEDIA-SEQUENCE:") {
+                let v = &line[b"#EXT-X-MEDIA-SEQUENCE:".len()..];
+                if let Some(n) = parse_i64_ascii(v) {
+                    playlist.start_seq_no = n as c_int;
+                }
+            } else if starts_with(line, b"#EXT-X-ENDLIST") {
+                playlist.finished = 1;
+            } else if starts_with(line, b"#EXTINF:") {
+                let v = &line[b"#EXTINF:".len()..];
+                // Stop at comma if present.
+                let v = v.split(|&b| b == b',').next().unwrap_or(v);
+                pending_seg_dur = parse_f64_seconds_to_us(v);
+            } else if starts_with(line, b"#EXT-X-STREAM-INF:") {
+                // Very small subset: BANDWIDTH=...
+                let attrs = &line[b"#EXT-X-STREAM-INF:".len()..];
+                // Scan for BANDWIDTH=digits
+                let mut bw: Option<i32> = None;
+                let mut i = 0usize;
+                while i + 10 <= attrs.len() {
+                    if &attrs[i..i + 10] == b"BANDWIDTH=" {
+                        let rest = &attrs[i + 10..];
+                        if let Some(v) = parse_i64_ascii(rest) {
+                            bw = Some(v as i32);
+                        }
+                        break;
+                    }
+                    i += 1;
+                }
+                pending_variant_bw = bw;
+            } else if starts_with(line, b"#EXT") {
+                // Strict mode: any other EXT tag is treated as unsupported.
+                return -3;
+            }
+            continue;
+        }
+
+        // URI line.
+        let offset = (line.as_ptr() as usize).wrapping_sub(data.as_ptr() as usize);
+        let len = line.len();
+        if let Some(dur) = pending_seg_dur.take() {
+            if playlist.n_segments < out_segments_cap {
+                unsafe {
+                    *out_segments.add(playlist.n_segments) = FFmpegRsHlsSegment {
+                        duration_us: dur,
+                        url_offset: offset,
+                        url_len: len,
+                    };
+                }
+            }
+            playlist.n_segments += 1;
+        } else if pending_variant_bw.is_some() {
+            let bw = pending_variant_bw.take().unwrap_or(0);
+            if playlist.n_variants < out_variants_cap {
+                unsafe {
+                    *out_variants.add(playlist.n_variants) = FFmpegRsHlsVariant {
+                        bandwidth: bw as c_int,
+                        url_offset: offset,
+                        url_len: len,
+                    };
+                }
+            }
+            playlist.n_variants += 1;
+        }
+    }
+
+    unsafe {
+        *out_playlist = playlist;
+    }
+    0
+}
+
 #[cfg(test)]
 mod tests_demux_events {
     use super::*;
@@ -521,5 +636,27 @@ mod tests_hls_parse {
         assert_eq!(&text[segs[0].url_offset..segs[0].url_offset + segs[0].url_len], b"seg0.ts");
         assert_eq!(vars[0].bandwidth, 12345);
         assert_eq!(&text[vars[0].url_offset..vars[0].url_offset + vars[0].url_len], b"low.m3u8");
+    }
+
+    #[test]
+    fn strict_rejects_unknown_tags() {
+        let text = b"#EXTM3U\n#EXT-X-UNKNOWN:1\nseg0.ts\n";
+        let mut pl = FFmpegRsHlsPlaylist {
+            target_duration_us: 0,
+            start_seq_no: 0,
+            finished: 0,
+            n_segments: 0,
+            n_variants: 0,
+        };
+        let r = ffmpeg_rs_hls_parse_strict(
+            text.as_ptr(),
+            text.len(),
+            &mut pl,
+            core::ptr::null_mut(),
+            0,
+            core::ptr::null_mut(),
+            0,
+        );
+        assert_eq!(r, -3);
     }
 }
