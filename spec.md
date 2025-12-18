@@ -65,7 +65,6 @@ Legend:
 |---|---|---|---|---|---|---|
 | WebVTT parser | `--enable-rust-webvtt` | `libavformat/webvttdec.c` (or shared helper) | targeted subtitles FATE + `make fate` | `tools/target_webvtt_fuzzer.c` | `tools/bench_webvtt` | done |
 | SRT/SubRip parser | `--enable-rust-subrip` | `libavformat/srtdec.c` | targeted subtitles FATE + `make fate` | `tools/target_subrip_fuzzer.c` | `tools/bench_subrip` | done |
-| ffmetadata demuxer KV helpers | `--enable-rust-ffmetadata` | `libavformat/ffmetadec.c` | `make fate-ffprobe_*` + `make fate` | `tools/target_ffmetadata_kv_fuzzer.c` | planned | done (subset) |
 | MicroDVD parser | `--enable-rust-microdvd` | `libavformat/microdvddec.c` | `make fate-sub-microdvd*` + `make fate` | `tools/target_microdvd_line_fuzzer.c` | planned | done (subset) |
 | TTML helpers | `--enable-rust-ttml` | `libavformat/ttmlenc.c` | `make fate-sub-ttmlenc` + `make fate` | `tools/target_ttml_extradata_fuzzer.c` | planned | done (subset) |
 | MPL2 parser | `--enable-rust-mpl2` | `libavformat/mpl2dec.c` | `make fate-sub-mpl2` + `make fate` | `tools/target_mpl2_line_fuzzer.c` | planned | done (subset) |
@@ -89,7 +88,7 @@ Legend:
 | Component | Flag | Wiring | Tests | Fuzz | Bench | Status |
 |---|---|---|---|---|---|---|
 | Concat demuxer (ffconcat) helpers | `--enable-rust-concat` | `libavformat/concatdec.c` | `make fate-concat-demuxer-*` + `make fate` | `tools/target_concat_token_fuzzer.c` | planned | done (subset) |
-| Candidate demuxer #2 (TBD) | `--enable-rust-demux-<fmt>` | `libavformat/<fmt>.c` | targeted `fate-lavf-*` + `make fate` | planned | startup latency + A/B parse microbench | planned |
+| ffmetadata demuxer KV helpers | `--enable-rust-ffmetadata` | `libavformat/ffmetadec.c` | `make fate-ffprobe_*` + `make fate` | `tools/target_ffmetadata_kv_fuzzer.c` | planned | done (subset) |
 
 ### Protocol Handlers
 
